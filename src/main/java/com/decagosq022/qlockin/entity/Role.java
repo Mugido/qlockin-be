@@ -1,6 +1,6 @@
-package com.decagosq022.qlockin.entity.model;
+package com.decagosq022.qlockin.entity;
 
-import com.decagosq022.qlockin.entity.enums.RoleName;
+import com.decagosq022.qlockin.enums.RoleName;
 import lombok.*;
 import jakarta.persistence.*;
 

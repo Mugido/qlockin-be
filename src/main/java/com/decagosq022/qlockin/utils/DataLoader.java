@@ -1,7 +1,7 @@
 package com.decagosq022.qlockin.utils;
 
-import com.decagosq022.qlockin.entity.enums.RoleName;
-import com.decagosq022.qlockin.entity.model.Role;
+import com.decagosq022.qlockin.enums.RoleName;
+import com.decagosq022.qlockin.entity.Role;
 import com.decagosq022.qlockin.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;

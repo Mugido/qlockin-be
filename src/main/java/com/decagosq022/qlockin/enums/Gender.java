@@ -1,4 +1,4 @@
-package com.decagosq022.qlockin.entity.enums;
+package com.decagosq022.qlockin.enums;
 
 public enum Gender {
     FEMALE,

@@ -1,12 +1,10 @@
-package com.decagosq022.qlockin.entity.model;
+package com.decagosq022.qlockin.entity;
 
 
-import com.decagosq022.qlockin.entity.enums.Gender;
+import com.decagosq022.qlockin.enums.Gender;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;

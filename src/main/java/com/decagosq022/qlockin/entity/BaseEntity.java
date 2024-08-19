@@ -1,4 +1,4 @@
-package com.decagosq022.qlockin.entity.model;
+package com.decagosq022.qlockin.entity;
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
