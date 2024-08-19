@@ -13,11 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Builder
 @Table(name = "attendance_tbl")
-public class Attendance {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Attendance extends BaseEntity{
 
     private LocalDateTime default_Qlock_In;
 
@@ -27,4 +23,5 @@ public class Attendance {
     @JoinColumn(name = "qlockIn_user_id", foreignKey = @ForeignKey(name = "FK_attendance_created_by_user"))
     @JsonBackReference("createdByUser")
     private User createdByUser;
+
 }

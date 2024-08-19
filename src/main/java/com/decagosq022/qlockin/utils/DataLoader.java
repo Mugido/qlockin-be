@@ -1,5 +1,6 @@
 package com.decagosq022.qlockin.utils;
 
+import com.decagosq022.qlockin.entity.enums.RoleName;
 import com.decagosq022.qlockin.entity.model.Role;
 import com.decagosq022.qlockin.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +16,13 @@ public class DataLoader implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (roleRepository.findByName("USER").isEmpty()) {
-            roleRepository.save(new Role("ADMIN"));
+
+        if (roleRepository.findByRoleName(RoleName.ADMIN).isEmpty()) {
+            roleRepository.save(new Role(RoleName.ADMIN));
         }
 
-        if (roleRepository.findByName("ADMIN").isEmpty()) {
-            roleRepository.save(new Role( "USER"));
+        if (roleRepository.findByRoleName(RoleName.USER).isEmpty()) {
+            roleRepository.save(new Role(RoleName.USER));
         }
     }
 }

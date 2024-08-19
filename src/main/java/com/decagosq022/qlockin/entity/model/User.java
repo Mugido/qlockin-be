@@ -19,16 +19,7 @@ import java.util.Set;
 @Entity
 @Builder
 @Table(name = "user_tbl")
-public class User {
-
-    @Id
-    private Long id;
-
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+public class User extends BaseEntity{
 
     private String fullName;
 

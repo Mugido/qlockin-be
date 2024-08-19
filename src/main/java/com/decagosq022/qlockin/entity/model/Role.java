@@ -1,5 +1,6 @@
 package com.decagosq022.qlockin.entity.model;
 
+import com.decagosq022.qlockin.entity.enums.RoleName;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -13,19 +14,16 @@ import java.util.Set;
 @Entity
 @Builder
 @Table(name = "role_tbl")
-public class Role {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class Role extends BaseEntity{
 
     @Column(unique = true, nullable = false)
-    private String name;
+    @Enumerated(EnumType.STRING)
+    private RoleName roleName;
 
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
 
-    public Role(String name) {
-        this.name = name;
+    public Role(RoleName roleName) {
+        this.roleName = roleName;
     }
 }
