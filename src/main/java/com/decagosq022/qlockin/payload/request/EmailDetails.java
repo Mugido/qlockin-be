@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class EmailDetails {
+
+    private String fullName;
+
+    private String employeeId;
+
     private String recipient;
 
     private String messageBody;
@@ -17,4 +22,6 @@ public class EmailDetails {
     private String attachment;
 
     private String subject;
+
+    private String link;
 }
