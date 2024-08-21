@@ -13,7 +13,7 @@ public class EmailDetails {
 
     private String fullName;
 
-    private String employee_id;
+    private String employeeId;
 
     private String recipient;
 

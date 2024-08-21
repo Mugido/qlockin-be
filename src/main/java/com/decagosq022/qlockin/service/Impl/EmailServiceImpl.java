@@ -53,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
         Context context = new Context();
         Map<String, Object> variables = Map.of(
                 "name", message.getFullName(),
-                "id", message.getEmployee_id(),
+                "id", message.getEmployeeId(),
                 "link", message.getLink()
         );
         context.setVariables(variables);

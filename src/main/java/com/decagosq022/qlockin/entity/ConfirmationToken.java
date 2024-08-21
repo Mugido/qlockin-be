@@ -13,11 +13,7 @@ import java.util.UUID;
 @Entity
 @Table
 @Builder
-public class ConfirmationTokenModel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class ConfirmationToken extends BaseEntity {
 
     @Column(nullable = false)
     private String token;
@@ -25,18 +21,15 @@ public class ConfirmationTokenModel {
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
-    @Column(nullable = false)
-    private LocalDateTime creationDate;
 
     @ManyToOne
     @JoinColumn(nullable = false, name = "user_id")
     private User users;
 
 
-    public ConfirmationTokenModel (User user){
+    public ConfirmationToken(User user){
         this.token = UUID.randomUUID().toString();
-        this.creationDate = LocalDateTime.now();
-        this.expiryDate = creationDate.plusDays(1);
+        this.expiryDate = getCreatedAt().plusDays(1);
         this.users = user;
     }
 }

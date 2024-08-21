@@ -1,6 +1,6 @@
 package com.decagosq022.qlockin.service.Impl;
 
-import com.decagosq022.qlockin.entity.ConfirmationTokenModel;
+import com.decagosq022.qlockin.entity.ConfirmationToken;
 import com.decagosq022.qlockin.entity.JToken;
 import com.decagosq022.qlockin.entity.Role;
 import com.decagosq022.qlockin.entity.User;
@@ -81,19 +81,19 @@ public class UserServiceImpl implements UserService {
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .phoneNumber(registerRequest.getPhoneNumber())
                 .position(registerRequest.getPosition())
-                .employee_id(accountUtils.generateUniqueId())
+                .employeeId(accountUtils.generateUniqueId())
                 .roles(Set.of(userRole))
                 .build();
 
         User savedUser = userRepository.save(user);
-        ConfirmationTokenModel confirmationTokenModel = new ConfirmationTokenModel(savedUser);
-        confirmationTokenRepository.save(confirmationTokenModel);
+        ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
+        confirmationTokenRepository.save(confirmationToken);
 
-        String confirmationUrl = EmailUtil.getVerificationUrl(confirmationTokenModel.getToken());
+        String confirmationUrl = EmailUtil.getVerificationUrl(confirmationToken.getToken());
 
         EmailDetails emailDetails = EmailDetails.builder()
                 .fullName(savedUser.getFullName())
-                .employee_id(savedUser.getEmployee_id())
+                .employeeId(savedUser.getEmployeeId())
                 .recipient(savedUser.getEmail())
                 .subject("QLOCKIN ACCOUNT CREATED SUCCESSFULLY")
                 .link(confirmationUrl)

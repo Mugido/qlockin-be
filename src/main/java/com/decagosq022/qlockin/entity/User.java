@@ -11,7 +11,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +47,7 @@ public class User extends BaseEntity implements UserDetails {
     @NotBlank(message = " Position is required")
     private String position;
 
-    private String employee_id;
+    private String employeeId;
 
     private boolean enabled;
 
@@ -70,7 +69,7 @@ public class User extends BaseEntity implements UserDetails {
     private List<JToken> jtokens;
 
     @OneToMany(mappedBy = "users",  cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ConfirmationTokenModel> confirmationTokens;
+    private List<ConfirmationToken> confirmationTokens;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
