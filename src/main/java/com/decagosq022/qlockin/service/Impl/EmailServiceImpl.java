@@ -47,19 +47,20 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendSimpleMailMessage(EmailDetails message, String fullName, String link) throws MessagingException {
+    public void sendSimpleMailMessage(EmailDetails message, String templateName) throws MessagingException {
         MimeMessage msg = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(msg, MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED, StandardCharsets.UTF_8.name());
         Context context = new Context();
         Map<String, Object> variables = Map.of(
-                "name", fullName,
-                "link", link
+                "name", message.getFullName(),
+                "id", message.getEmployee_id(),
+                "link", message.getLink()
         );
         context.setVariables(variables);
         helper.setFrom(senderEmail);
         helper.setTo(message.getRecipient());
         helper.setSubject(message.getSubject());
-        String html = tEngine.process("email-verification", context);
+        String html = tEngine.process("email", context);
         helper.setText(html, true);
 
         javaMailSender.send(msg);

@@ -1,4 +1,4 @@
-package com.decagosq022.qlockin.config;
+package com.decagosq022.qlockin.infrastructure.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;

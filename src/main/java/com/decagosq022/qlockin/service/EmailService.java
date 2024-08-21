@@ -6,7 +6,7 @@ import jakarta.mail.MessagingException;
 public interface EmailService {
     void sendEmailAlert(EmailDetails emailDetails);
 
-    void sendSimpleMailMessage(EmailDetails message, String fullName, String link) throws MessagingException;
+    void sendSimpleMailMessage(EmailDetails message, String templateName) throws MessagingException;
 
     void mimeMailMessage(EmailDetails emailDetails);
 }
