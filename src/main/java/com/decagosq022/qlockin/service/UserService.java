@@ -1,6 +1,8 @@
 package com.decagosq022.qlockin.service;
 
+import com.decagosq022.qlockin.payload.request.ForgetPasswordRequestDto;
 import com.decagosq022.qlockin.payload.request.LoginRequest;
+import com.decagosq022.qlockin.payload.request.ResetPasswordDto;
 import com.decagosq022.qlockin.payload.request.UserRegisterRequest;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
@@ -11,4 +13,8 @@ public interface UserService {
     UserRegisterResponse registerUser(UserRegisterRequest registerRequest) throws MessagingException;
 
     LoginResponse loginUser(LoginRequest loginRequest);
+
+    String forgetPassword(ForgetPasswordRequestDto requestDto);
+
+    String resetPassword(ResetPasswordDto requestDto);
 }

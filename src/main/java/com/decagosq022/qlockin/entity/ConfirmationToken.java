@@ -29,7 +29,7 @@ public class ConfirmationToken extends BaseEntity {
 
     public ConfirmationToken(User user){
         this.token = UUID.randomUUID().toString();
-        this.expiryDate = getCreatedAt().plusDays(1);
+        this.expiryDate = LocalDateTime.now().plusDays(1);
         this.users = user;
     }
 }

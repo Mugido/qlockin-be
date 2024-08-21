@@ -10,9 +10,7 @@ import com.decagosq022.qlockin.exceptions.AlreadyExistsException;
 import com.decagosq022.qlockin.exceptions.NotEnabledException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
-import com.decagosq022.qlockin.payload.request.EmailDetails;
-import com.decagosq022.qlockin.payload.request.LoginRequest;
-import com.decagosq022.qlockin.payload.request.UserRegisterRequest;
+import com.decagosq022.qlockin.payload.request.*;
 import com.decagosq022.qlockin.payload.response.LoginInfo;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
@@ -23,6 +21,7 @@ import com.decagosq022.qlockin.repository.UserRepository;
 import com.decagosq022.qlockin.service.EmailService;
 import com.decagosq022.qlockin.service.UserService;
 import com.decagosq022.qlockin.utils.AccountUtils;
+import com.decagosq022.qlockin.utils.EmailBody;
 import com.decagosq022.qlockin.utils.EmailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
@@ -32,8 +31,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -83,10 +85,12 @@ public class UserServiceImpl implements UserService {
                 .position(registerRequest.getPosition())
                 .employeeId(accountUtils.generateUniqueId())
                 .roles(Set.of(userRole))
+                .gender(registerRequest.getGender())
                 .build();
 
         User savedUser = userRepository.save(user);
         ConfirmationToken confirmationToken = new ConfirmationToken(savedUser);
+
         confirmationTokenRepository.save(confirmationToken);
 
         String confirmationUrl = EmailUtil.getVerificationUrl(confirmationToken.getToken());
@@ -158,4 +162,70 @@ public class UserServiceImpl implements UserService {
                         .build())
                 .build();
     }
+
+    @Override
+    public String forgetPassword(ForgetPasswordRequestDto requestDto) {
+
+        User user = userRepository.findByEmail(requestDto.getEmail()).orElse(null);
+
+        if(user == null){
+            throw new NotFoundException("User does not exist");
+        }
+
+
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenCreationTime(LocalDateTime.now());
+        userRepository.save(user);
+
+        String resetUrl = "http://localhost:5173/reset-password?token=" + token;
+
+//        // click this link to reset password;
+        EmailDetails emailDetails = EmailDetails.builder()
+                .recipient(user.getEmail())
+                .subject("FORGET PASSWORD")
+                .messageBody(EmailBody.buildEmail(user.getFullName(), resetUrl ))
+                .build();
+
+        //send the reset password link
+        emailService.mimeMailMessage(emailDetails);
+
+        return "A reset password link has been sent to your account email address:      " + resetUrl;
+
+    }
+
+
+    // reset the password for real now
+
+    @Override
+    public String resetPassword(ResetPasswordDto requestDto) {
+
+        User user = userRepository.findByResetToken(requestDto.getToken()).orElse(null);
+
+        if(user == null){
+            throw new NotFoundException("You cannot make this change!");
+        }
+
+        if (Duration.between(user.getResetTokenCreationTime(), LocalDateTime.now()).toMinutes() > 5) {
+            user.setResetToken(null);
+            userRepository.save(user);
+            throw new NotEnabledException("Token has expired!");
+        }
+
+        if(!requestDto.getPassword().equals(requestDto.getConfirmPassword())){
+            throw new NotEnabledException("Confirmation Password does not match!");
+        }
+
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
+
+
+        // set the reset token to null
+        user.setResetToken(null);
+
+        userRepository.save(user);
+
+        return "Password Reset Successful";
+    }
+
+
 }
