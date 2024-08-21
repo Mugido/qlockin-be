@@ -81,7 +81,9 @@
     <!-- Content -->
     <div class="content">
         <p>Hi, <th:block th:text="${name}"></th:block></p>
-        <p>Welcome to Qlock-in! To complete your registration, please verify your email by clicking the button below: </p>
+        <p>Welcome to <strong>Qlock-in! </strong> </p>
+        <p>Your Unique Employee Id is <strong>  <th:block th:text="${id}"></th:block> </strong></p>
+        <p>To complete your registration, please verify your email by clicking the button below: </p>
         <a th:href="${link}" class="btn">Verify Email</a>
         <p>If you did not create an account, you can safely ignore this mail.</p>
     </div>
