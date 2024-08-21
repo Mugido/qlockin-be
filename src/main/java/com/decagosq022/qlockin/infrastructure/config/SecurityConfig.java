@@ -42,7 +42,10 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.POST, "/api/auth/forgot-password"),
                                         antMatcher(HttpMethod.POST, "/api/auth/reset"),
                                         antMatcher(HttpMethod.GET, "/api/auth/confirm-forget-password-token"),
-                                        antMatcher(HttpMethod.GET, "/api/auth/confirm")
+                                        antMatcher(HttpMethod.GET, "/swagger-ui.html"),
+                                        antMatcher(HttpMethod.GET, "/swagger-ui/**"),
+                                        antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
+                                        antMatcher(HttpMethod.GET, "/swagger-resources/**")
                                 )
                                 .permitAll()
                                 .anyRequest()
@@ -75,5 +78,7 @@ public class SecurityConfig {
 
         return source;
     }
+
+
 
 }
