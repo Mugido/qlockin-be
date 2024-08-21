@@ -190,7 +190,7 @@ public class UserServiceImpl implements UserService {
         //send the reset password link
         emailService.mimeMailMessage(emailDetails);
 
-        return "A reset password link has been sent to your account email address:      " + resetUrl;
+        return "A reset password link has been sent to your account email address";
 
     }
 
