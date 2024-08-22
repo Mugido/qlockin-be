@@ -45,7 +45,8 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.GET, "/swagger-ui.html"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui/**"),
                                         antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
-                                        antMatcher(HttpMethod.GET, "/swagger-resources/**")
+                                        antMatcher(HttpMethod.GET, "/swagger-resources/**"),
+                                        antMatcher(HttpMethod.GET, "/api/auth/confirm")
                                 )
                                 .permitAll()
                                 .anyRequest()
