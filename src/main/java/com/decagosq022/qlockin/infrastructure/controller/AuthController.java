@@ -1,6 +1,8 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
+import com.decagosq022.qlockin.payload.request.ForgetPasswordRequestDto;
 import com.decagosq022.qlockin.payload.request.LoginRequest;
+import com.decagosq022.qlockin.payload.request.ResetPasswordDto;
 import com.decagosq022.qlockin.payload.request.UserRegisterRequest;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
@@ -55,6 +57,21 @@ public class AuthController {
 
     }
 
+    @PostMapping("/forget-password")
+    public ResponseEntity<?> forgetPassword(@RequestBody ForgetPasswordRequestDto requestDto){
+
+        String response = userService.forgetPassword(requestDto);
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto requestDto){
+
+        String response = userService.resetPassword(requestDto);
+
+        return ResponseEntity.ok(response);
+    }
 
 
 }

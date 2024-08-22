@@ -11,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +51,12 @@ public class User extends BaseEntity implements UserDetails {
     private String employeeId;
 
     private boolean enabled;
+
+    // this token is to handle reset password
+    private String resetToken;
+
+    // monitor token creation time and expiration time
+    private LocalDateTime resetTokenCreationTime;
 
 
     @ManyToMany(fetch = FetchType.EAGER)
