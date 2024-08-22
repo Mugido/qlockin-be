@@ -6,6 +6,7 @@ import com.decagosq022.qlockin.payload.request.LoginRequest;
 import com.decagosq022.qlockin.payload.request.ResetPasswordDto;
 import com.decagosq022.qlockin.payload.request.UserRegisterRequest;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
+import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
 import jakarta.mail.MessagingException;
 
@@ -17,7 +18,7 @@ public interface UserService {
 
     LoginResponse loginUser(LoginRequest loginRequest);
 
-    Optional<User> getUserById(Long id);
+    UserDetailsResponseDto getUserByEmail(String email);
 
     String forgetPassword(ForgetPasswordRequestDto requestDto);
 

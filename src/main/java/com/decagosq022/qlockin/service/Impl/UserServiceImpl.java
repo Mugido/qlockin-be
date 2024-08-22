@@ -13,6 +13,7 @@ import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
 import com.decagosq022.qlockin.payload.response.LoginInfo;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
+import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
 import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
 import com.decagosq022.qlockin.repository.JTokenRepository;
@@ -33,11 +34,13 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -164,8 +167,31 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public UserDetailsResponseDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user == null){
+            throw new NotFoundException("User Not Found");
+        }
+        Set<Role> roles = user.getRoles();
+        List<String> roleNames = roles.stream()
+                .map(role -> role.getRoleName().name())
+                .toList();
+
+        StringBuilder roleStr = new StringBuilder();
+        for(String roleNameStr : roleNames){
+            roleStr.append(roleNameStr);
+        }
+
+        return UserDetailsResponseDto.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .employeeId(user.getEmployeeId())
+                .gender(user.getGender())
+                .phoneNumber(user.getPhoneNumber())
+                .roleName(roleStr.toString())
+                .position(user.getPosition())
+
+                .build();
     }
 
     @Override
