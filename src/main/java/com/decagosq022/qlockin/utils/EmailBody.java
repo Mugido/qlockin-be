@@ -31,7 +31,7 @@ public class EmailBody {
                     "\n" +
                     "        /* Header */\n" +
                     "        .header {\n" +
-                    "            background-color: #007bff;\n" +
+                    "            background-color: #6A0DAD;\n" +
                     "            color: white;\n" +
                     "            text-align: center;\n" +
                     "            padding: 20px 0;\n" +
@@ -82,14 +82,14 @@ public class EmailBody {
                     "    <!-- Content -->\n" +
                     "    <div class=\"content\">\n" +
                     "        <p>Hello " + fullName +",</p>\n" +
-                    "        <p>Thank You for using our Escalayt Application <strong>TEAM-A SQ022</strong> Decagon Institute. Click the button below to <strong>RESET</strong> your <strong>PASSWORD</strong>  </p>\n" +
+                    "        <p>Thank You for using our   <strong>Qlock-In</strong> Application Decagon Institute. <br/> Click the button below to <strong>RESET</strong> your <strong>PASSWORD</strong>  </p>\n" +
                     "        <a href="+ link +" class=\"btn\">Reset Password</a>\n" +
                     "        <p>If you did not initiate the process, please ignore this email.</p>\n" +
                     "    </div>\n" +
                     "\n" +
                     "    <!-- Footer -->\n" +
                     "    <div class=\"footer\">\n" +
-                    "        <p>This email was sent from &copy;<b>sq022-TEAM-A</b>.</p>\n" +
+                    "        <p>This email was sent from &copy;<b>Qlock-In Team</b>.</p>\n" +
                     "    </div>\n" +
                     "</div>\n" +
                     "</body>\n" +
