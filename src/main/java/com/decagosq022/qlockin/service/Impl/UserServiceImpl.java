@@ -11,6 +11,7 @@ import com.decagosq022.qlockin.exceptions.NotEnabledException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
+import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
 import com.decagosq022.qlockin.payload.response.LoginInfo;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
 import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
@@ -29,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -259,5 +262,39 @@ public class UserServiceImpl implements UserService {
         return "Password Reset Successful";
     }
 
+    @Override
+    public ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest) {
 
+        // Get the authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Check if new passwords match
+        if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmNewPassword())) {
+            return ChangePasswordResponse.builder()
+                    .responseCode("400")
+                    .responseMessage("New passwords do not match")
+                    .build();
+        }
+
+        // Check old password
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+            return ChangePasswordResponse.builder()
+                    .responseCode("401")
+                    .responseMessage("Old password is incorrect")
+                    .build();
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+        return ChangePasswordResponse.builder()
+                .responseCode("200")
+                .responseMessage("Password changed successfully")
+                .build();
+    }
 }
