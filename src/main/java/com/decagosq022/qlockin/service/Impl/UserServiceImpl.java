@@ -190,6 +190,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .roleName(roleStr.toString())
                 .position(user.getPosition())
+                .photoUrl(user.getPhotoUrl())
 
                 .build();
     }
