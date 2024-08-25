@@ -50,6 +50,8 @@ public class User extends BaseEntity implements UserDetails {
 
     private String employeeId;
 
+    private String photoUrl;
+
     private boolean enabled;
 
     // this token is to handle reset password

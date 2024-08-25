@@ -11,8 +11,10 @@ import com.decagosq022.qlockin.exceptions.NotEnabledException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
+import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
 import com.decagosq022.qlockin.payload.response.LoginInfo;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
+import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
 import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
 import com.decagosq022.qlockin.repository.JTokenRepository;
@@ -28,16 +30,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -164,6 +170,35 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDetailsResponseDto getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if(user == null){
+            throw new NotFoundException("User Not Found");
+        }
+        Set<Role> roles = user.getRoles();
+        List<String> roleNames = roles.stream()
+                .map(role -> role.getRoleName().name())
+                .toList();
+
+        StringBuilder roleStr = new StringBuilder();
+        for(String roleNameStr : roleNames){
+            roleStr.append(roleNameStr);
+        }
+
+        return UserDetailsResponseDto.builder()
+                .fullName(user.getFullName())
+                .email(user.getEmail())
+                .employeeId(user.getEmployeeId())
+                .gender(user.getGender())
+                .phoneNumber(user.getPhoneNumber())
+                .roleName(roleStr.toString())
+                .position(user.getPosition())
+                .photoUrl(user.getPhotoUrl())
+
+                .build();
+    }
+
+    @Override
     public String forgetPassword(ForgetPasswordRequestDto requestDto) {
 
         User user = userRepository.findByEmail(requestDto.getEmail()).orElse(null);
@@ -227,5 +262,39 @@ public class UserServiceImpl implements UserService {
         return "Password Reset Successful";
     }
 
+    @Override
+    public ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest) {
 
+        // Get the authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Check if new passwords match
+        if (!changePasswordRequest.getNewPassword().equals(changePasswordRequest.getConfirmNewPassword())) {
+            return ChangePasswordResponse.builder()
+                    .responseCode("400")
+                    .responseMessage("New passwords do not match")
+                    .build();
+        }
+
+        // Check old password
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
+            return ChangePasswordResponse.builder()
+                    .responseCode("401")
+                    .responseMessage("Old password is incorrect")
+                    .build();
+        }
+
+        // Update password
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+
+        return ChangePasswordResponse.builder()
+                .responseCode("200")
+                .responseMessage("Password changed successfully")
+                .build();
+    }
 }

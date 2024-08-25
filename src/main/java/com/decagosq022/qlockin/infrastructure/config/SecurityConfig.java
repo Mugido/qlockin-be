@@ -40,8 +40,10 @@ public class SecurityConfig {
                         requests -> requests
                                 .requestMatchers(antMatcher(HttpMethod.POST, "/api/auth/**"),
                                         antMatcher(HttpMethod.POST, "/api/auth/forgot-password"),
+                                        antMatcher(HttpMethod.GET, "/api/auth/confirm"),
                                         antMatcher(HttpMethod.POST, "/api/auth/reset"),
                                         antMatcher(HttpMethod.GET, "/api/auth/confirm-forget-password-token"),
+                                        antMatcher(HttpMethod.GET, "/api/auth/confirm"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui.html"),
                                         antMatcher(HttpMethod.GET, "/swagger-ui/**"),
                                         antMatcher(HttpMethod.GET, "/v3/api-docs/**"),
