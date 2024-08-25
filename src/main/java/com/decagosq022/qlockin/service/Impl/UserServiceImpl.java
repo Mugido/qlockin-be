@@ -6,16 +6,10 @@ import com.decagosq022.qlockin.entity.Role;
 import com.decagosq022.qlockin.entity.User;
 import com.decagosq022.qlockin.enums.RoleName;
 import com.decagosq022.qlockin.enums.TokenType;
-import com.decagosq022.qlockin.exceptions.AlreadyExistsException;
-import com.decagosq022.qlockin.exceptions.NotEnabledException;
-import com.decagosq022.qlockin.exceptions.NotFoundException;
+import com.decagosq022.qlockin.exceptions.*;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
-import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
-import com.decagosq022.qlockin.payload.response.LoginInfo;
-import com.decagosq022.qlockin.payload.response.LoginResponse;
-import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
-import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
 import com.decagosq022.qlockin.repository.JTokenRepository;
 import com.decagosq022.qlockin.repository.RoleRepository;
@@ -35,12 +29,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -297,4 +289,75 @@ public class UserServiceImpl implements UserService {
                 .responseMessage("Password changed successfully")
                 .build();
     }
+
+    @Override
+    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) {
+
+
+        // Check if the authenticated user has the 'USER' role
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authenticatedUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
+
+        boolean isUser = authenticatedUser.getRoles().stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.USER));
+
+        if (!isUser) {
+            throw new SecurityException("Only users with the USER role can add new employees.");
+        }
+
+        Optional<User> existingUser = userRepository.findByEmail(registerRequest.getEmail());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("User already exists, please Login");
+        }
+
+        Role userRole = roleRepository.findByRoleName(RoleName.USER)
+                .orElseThrow(() -> new NotFoundException("Role 'USER' not found in the database."));
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+
+        String generatedPassword = AccountUtils.generatePassword();
+
+        User user = User.builder()
+                .photoUrl(registerRequest.getPhotoUrl())
+                .employeeId(accountUtils.generateUniqueId())
+                .fullName(registerRequest.getFirstName() + " " + registerRequest.getLastName())
+                .dateOfBirth(registerRequest.getDateOfBirth())
+                .preferredName(registerRequest.getPreferredName())
+                .email(registerRequest.getEmail())
+                .department(registerRequest.getDepartment())
+                .position(registerRequest.getJobTitle())
+                .shiftTime(registerRequest.getShiftTime())
+                .phoneNumber(registerRequest.getPhoneNumber())
+                .dateOfHire(registerRequest.getDateOfHire())
+                .division(registerRequest.getDivision())
+                .employeeStatus(registerRequest.getEmployeeStatus())
+                .password(passwordEncoder.encode(generatedPassword))
+                .roles(roles)
+                .enabled(true)
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        String loginLink = EmailUtil.getLoginUrl();
+
+        String emailContent = EmailBody.addEmployeeEmailBody(savedUser.getFullName(), savedUser.getEmployeeId(), generatedPassword, loginLink);
+
+        EmailDetails emailDetails = EmailDetails.builder()
+                .fullName(savedUser.getFullName())
+                .employeeId(savedUser.getEmployeeId())
+                .recipient(savedUser.getEmail())
+                .subject("Welcome to Qlock-in")
+                .messageBody(emailContent)
+                .build();
+
+        emailService.mimeMailMessage(emailDetails);
+        return EmployeeRegistrationResponse.builder()
+                .responseCode("001")
+                .responseMessage("Employee has been created successfully. Login details have been sent to their email.")
+                .build();
+    }
+
+
 }

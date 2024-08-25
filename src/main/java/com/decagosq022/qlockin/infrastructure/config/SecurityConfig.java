@@ -50,6 +50,7 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.GET, "/swagger-resources/**")
                                 )
                                 .permitAll()
+                                .requestMatchers("/api/v1/users/**").hasAuthority("ROLE_USER")
                                 .anyRequest()
                                 .authenticated()
 

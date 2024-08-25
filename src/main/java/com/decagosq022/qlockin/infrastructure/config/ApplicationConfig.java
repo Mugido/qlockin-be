@@ -51,8 +51,8 @@ public class ApplicationConfig {
                     return new org.springframework.security.core.userdetails.User(
                             user.getEmail(),
                             user.getPassword(),
-                            Arrays.asList(user.getRoles()).stream()
-                                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                            user.getRoles().stream()
+                                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRoleName().name()))
                                     .collect(Collectors.toList())
                     );
                 })

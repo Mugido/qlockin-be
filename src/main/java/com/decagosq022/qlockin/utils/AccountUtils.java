@@ -37,4 +37,20 @@ public class AccountUtils {
         return uniqueId;
     }
 
+    public static String generatePassword() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < 3; i++) {
+            password.append(random.nextInt(10));
+        }
+
+        String chars = "abcdefghijklmnopqrst@#$%&";
+        for (int i = 0; i < 3; i++) {
+            password.append(chars.charAt(random.nextInt(chars.length())));
+        }
+
+        return password.toString();
+    }
+
 }
