@@ -1,16 +1,17 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.entity.User;
+import com.decagosq022.qlockin.payload.response.UploadResponse;
 import com.decagosq022.qlockin.service.UserService;
+import com.decagosq022.qlockin.utils.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -26,5 +27,19 @@ public class UserController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return ResponseEntity.ok(userService.getUserByEmail(currentUsername));
+    }
+
+    @PutMapping("/profile-picture")
+    public ResponseEntity<UploadResponse> profileUpload(@RequestParam("file") MultipartFile profilePic){
+        //Get the authenticated user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+// Get the email of the user
+        String currentUser = authentication.getName();
+        if(profilePic.getSize() > AppConstants.MAX_FILE_SIZE){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new UploadResponse("File size exceed the normal limit"));
+        }
+        return userService.uploadProfilePics(profilePic, currentUser);
     }
 }
