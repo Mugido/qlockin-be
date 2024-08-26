@@ -86,4 +86,7 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException(e);
         }
     }
+
+    public static class FileUploadService {
+    }
 }

@@ -8,6 +8,8 @@ import com.decagosq022.qlockin.payload.request.UserRegisterRequest;
 import com.decagosq022.qlockin.payload.request.*;
 import com.decagosq022.qlockin.payload.response.*;
 import jakarta.mail.MessagingException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
 
@@ -24,6 +26,8 @@ public interface UserService {
     String resetPassword(ResetPasswordDto requestDto);
 
     ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest);
+
+    ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email);
 
     EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest);
 
