@@ -60,6 +60,8 @@ public class User extends BaseEntity implements UserDetails {
     // monitor token creation time and expiration time
     private LocalDateTime resetTokenCreationTime;
 
+    private String profilePicture;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

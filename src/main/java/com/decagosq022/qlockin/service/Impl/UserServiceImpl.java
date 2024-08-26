@@ -11,16 +11,13 @@ import com.decagosq022.qlockin.exceptions.NotEnabledException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
-import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
-import com.decagosq022.qlockin.payload.response.LoginInfo;
-import com.decagosq022.qlockin.payload.response.LoginResponse;
-import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
-import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
 import com.decagosq022.qlockin.repository.JTokenRepository;
 import com.decagosq022.qlockin.repository.RoleRepository;
 import com.decagosq022.qlockin.repository.UserRepository;
 import com.decagosq022.qlockin.service.EmailService;
+import com.decagosq022.qlockin.service.FileUploadService;
 import com.decagosq022.qlockin.service.UserService;
 import com.decagosq022.qlockin.utils.AccountUtils;
 import com.decagosq022.qlockin.utils.EmailBody;
@@ -28,13 +25,16 @@ import com.decagosq022.qlockin.utils.EmailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,6 +58,7 @@ public class UserServiceImpl implements UserService {
     private final AccountUtils accountUtils;
     private final RoleRepository roleRepository;
     private final EmailService emailService;
+    private final FileUploadService fileUploadService;
 
 
     @Override
@@ -296,5 +297,30 @@ public class UserServiceImpl implements UserService {
                 .responseCode("200")
                 .responseMessage("Password changed successfully")
                 .build();
+    }
+
+    @Override
+    public ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email) {
+        Optional<User> userEntityOptional =
+                userRepository.findByEmail(email);
+
+        String fileUrl = null;
+        try{
+            if (userEntityOptional.isPresent()){
+                fileUrl = fileUploadService.uploadFile(file);
+                User userEntity= userEntityOptional.get();
+                userEntity.setProfilePicture(fileUrl);
+
+                userRepository.save(userEntity);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok(
+                new UploadResponse(
+                        "Upload Successfully",
+                        fileUrl
+                )
+        );
     }
 }
