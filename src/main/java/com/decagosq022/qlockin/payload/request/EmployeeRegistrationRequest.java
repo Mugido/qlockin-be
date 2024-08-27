@@ -7,6 +7,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -38,7 +39,7 @@ public class EmployeeRegistrationRequest {
     private String jobTitle;
 
     @NotNull(message = "Shift time is required")
-    private LocalDateTime shiftTime;
+    private LocalTime shiftTime;
 
     @NotNull(message = "Date of hire is required")
     private LocalDate dateOfHire;

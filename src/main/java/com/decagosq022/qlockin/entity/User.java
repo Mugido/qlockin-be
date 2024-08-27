@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDate dateOfHire;
 
 
-    private LocalDateTime shiftTime;
+    private LocalTime shiftTime;
 
 
     private String employeeStatus;
