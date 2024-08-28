@@ -28,4 +28,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
+
+    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException e){
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.CONFLICT);
+    }
 }

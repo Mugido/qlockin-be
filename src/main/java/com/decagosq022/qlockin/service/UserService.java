@@ -29,4 +29,6 @@ public interface UserService {
 
     ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email);
 
+    EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest);
+
 }
