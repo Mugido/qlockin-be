@@ -31,4 +31,6 @@ public interface UserService {
 
     EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest);
 
+    String deleteEmployee (Long userId);
+
 }
