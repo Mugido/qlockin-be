@@ -28,19 +28,19 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/")
-    public ResponseEntity<?> getUserByEmail(){
+    public ResponseEntity<?> getUserByEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return ResponseEntity.ok(userService.getUserByEmail(currentUsername));
     }
 
     @PutMapping("/profile-picture")
-    public ResponseEntity<UploadResponse> profileUpload(@RequestParam("file") MultipartFile profilePic){
+    public ResponseEntity<UploadResponse> profileUpload(@RequestParam("file") MultipartFile profilePic) {
         //Get the authenticated user
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 // Get the email of the user
         String currentUser = authentication.getName();
-        if(profilePic.getSize() > AppConstants.MAX_FILE_SIZE){
+        if (profilePic.getSize() > AppConstants.MAX_FILE_SIZE) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(new UploadResponse("File size exceed the normal limit"));
@@ -50,8 +50,16 @@ public class UserController {
 
 
     @PostMapping("/add-employee")
-    public ResponseEntity<EmployeeRegistrationResponse> registerUser(@RequestBody EmployeeRegistrationRequest registrationRequest) throws MessagingException {;
+    public ResponseEntity<EmployeeRegistrationResponse> registerUser(@RequestBody EmployeeRegistrationRequest registrationRequest) throws MessagingException {
+        ;
         EmployeeRegistrationResponse response = userService.addEmployee(registrationRequest);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/delete-employee")
+    public ResponseEntity<String> deleteEmployee(@RequestParam Long userId) {
+        String response = userService.deleteEmployee(userId);
+        return ResponseEntity.ok(response);
+    }
+
 }

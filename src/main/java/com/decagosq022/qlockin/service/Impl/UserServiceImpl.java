@@ -362,6 +362,28 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    @Override
+    public String deleteEmployee(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (Objects.equals(user.getId(), userId))
+        {
+
+            throw new NotEnabledException("Cannot perform this action");
+        }
+
+        boolean existingUser= userRepository.existsById(userId);
+        if (!existingUser) {
+            throw new NotFoundException("User does not exist");
+        }
+
+        userRepository.deleteById(userId);
+        return "User Deleted Successfully";
+    }
 
 
     @Override
