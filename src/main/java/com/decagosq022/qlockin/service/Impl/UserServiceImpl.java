@@ -410,4 +410,19 @@ public class UserServiceImpl implements UserService {
                 )
         );
     }
+
+    public String activateUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        if (user.isActive()) {
+            return "User is already active";
+        }
+
+        user.setActive(true);
+        userRepository.save(user);
+
+        return "User activated successfully";
+    }
 }
