@@ -16,5 +16,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByResetToken(String resetToken);
 
+    Optional<User> findByEmployeeId(String employeeId);
+
 
 }
