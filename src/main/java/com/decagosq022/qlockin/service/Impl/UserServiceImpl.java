@@ -159,7 +159,7 @@ public class UserServiceImpl implements UserService {
 
         return LoginResponse.builder()
                 .responseCode("002")
-                .responseMessage("Your have been login successfully")
+                .responseMessage("Your have been logged in successfully")
                 .loginInfo(LoginInfo.builder()
                         .email(person.getEmail())
                         .token(jwtToken)
