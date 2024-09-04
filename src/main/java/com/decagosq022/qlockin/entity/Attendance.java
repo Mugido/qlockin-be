@@ -19,6 +19,8 @@ public class Attendance extends BaseEntity{
 
     private LocalDateTime default_Qlock_Out;
 
+
+
     @ManyToOne(optional = true)
     @JoinColumn(name = "qlockIn_user_id", foreignKey = @ForeignKey(name = "FK_attendance_created_by_user"))
     @JsonBackReference("createdByUser")
