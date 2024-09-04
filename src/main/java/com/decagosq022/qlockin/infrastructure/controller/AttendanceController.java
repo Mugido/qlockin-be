@@ -1,5 +1,6 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
+import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
 import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
 import com.decagosq022.qlockin.payload.response.AttendanceResponse;
 import com.decagosq022.qlockin.service.AttendanceService;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.NotActiveException;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,5 +44,11 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
         AttendanceDataDto stats = attendanceService.getAllAttendanceStat(currentUsername, date);
         return ResponseEntity.ok(stats);
+    }
+    @GetMapping("/absenteeism")
+    public ResponseEntity<List<AbsenteeismReportResponseDto>> getMonthlyAbsenteeismReport(
+            @RequestParam int year, @RequestParam int month){
+        List<AbsenteeismReportResponseDto> report = attendanceService.getMonthlyAbsenteeismReport(year, month);
+        return ResponseEntity.ok(report);
     }
 }

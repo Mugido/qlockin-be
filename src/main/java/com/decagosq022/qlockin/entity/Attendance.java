@@ -20,6 +20,8 @@ public class Attendance extends BaseEntity{
 
     private LocalDateTime default_Qlock_Out;
 
+
+
     private LocalDateTime qlockIn;
 
     private LocalDateTime qlockOut;

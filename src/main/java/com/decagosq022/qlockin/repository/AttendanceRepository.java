@@ -1,3 +1,4 @@
+
 package com.decagosq022.qlockin.repository;
 
 import com.decagosq022.qlockin.entity.Attendance;
@@ -16,4 +17,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     Optional<Attendance> findByCreatedByUserAndQlockInBetween(User user, LocalDateTime startOfDay, LocalDateTime endOfDay);
 
     List<Attendance> findAllByDate(LocalDate date);
+
+    List<Attendance> findAllByDateBetween(LocalDate startDate, LocalDate endDate);
 }
