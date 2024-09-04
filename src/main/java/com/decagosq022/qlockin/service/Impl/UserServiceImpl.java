@@ -23,6 +23,7 @@ import com.decagosq022.qlockin.utils.EmailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -296,8 +297,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) {
-
+    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User authenticatedUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
@@ -320,19 +320,42 @@ public class UserServiceImpl implements UserService {
         Set<Role> roles = new HashSet<>();
         roles.add(userRole);
 
+        // Validate employeeId format
+        String employeeIdPattern = "^[A-Z]{2}\\d{6}$"; // Two letters followed by six digits
+        if (!registerRequest.getEmployeeId().matches(employeeIdPattern)) {
+            throw new InvalidInputException("Employee ID must follow the pattern: Two letters followed by six digits (e.g., JQ959623).");
+        }
+
+        // Check if employeeId already exists
+        Optional<User> existingEmployeeId = userRepository.findByEmployeeId(registerRequest.getEmployeeId());
+        if (existingEmployeeId.isPresent()) {
+            throw new UserAlreadyExistsException("Employee ID already exists, please use a different one.");
+        }
+
         String generatedPassword = AccountUtils.generatePassword();
 
+        // Upload profile picture if provided
+        String profilePictureUrl = null;
+        if (registerRequest.getProfilePicture() != null && !registerRequest.getProfilePicture().isEmpty()) {
+            try {
+                profilePictureUrl = fileUploadService.uploadFile(registerRequest.getProfilePicture());
+            } catch (FileSizeLimitExceededException e) {
+                throw new InvalidInputException("Profile picture file size exceeds the allowable limit.");
+            } catch (IOException e) {
+                throw new InvalidInputException("An error occurred while uploading the profile picture. Please try again.");
+            }
+        }
+
         User user = User.builder()
-                .photoUrl(registerRequest.getPhotoUrl())
-                .employeeId(accountUtils.generateUniqueId())
+                .photoUrl(profilePictureUrl)
+                .employeeId(registerRequest.getEmployeeId())
                 .fullName(registerRequest.getFirstName() + " " + registerRequest.getLastName())
                 .dateOfBirth(registerRequest.getDateOfBirth())
                 .preferredName(registerRequest.getPreferredName())
                 .email(registerRequest.getEmail())
                 .department(registerRequest.getDepartment())
                 .position(registerRequest.getJobTitle())
-                .shiftTime(registerRequest.getShiftTime())
-                .phoneNumber(registerRequest.getPhoneNumber())
+                .shiftTime(registerRequest.getShiftTime()) // the time format is 09:30:00
                 .dateOfHire(registerRequest.getDateOfHire())
                 .division(registerRequest.getDivision())
                 .employeeStatus(registerRequest.getEmployeeStatus())
@@ -341,12 +364,12 @@ public class UserServiceImpl implements UserService {
                 .enabled(true)
                 .build();
 
+        // Save the new user to the repository
         User savedUser = userRepository.save(user);
 
+        // Send a welcome email
         String loginLink = EmailUtil.getLoginUrl();
-
         String emailContent = EmailBody.addEmployeeEmailBody(savedUser.getFullName(), savedUser.getEmployeeId(), generatedPassword, loginLink);
-
         EmailDetails emailDetails = EmailDetails.builder()
                 .fullName(savedUser.getFullName())
                 .employeeId(savedUser.getEmployeeId())
@@ -356,11 +379,13 @@ public class UserServiceImpl implements UserService {
                 .build();
 
         emailService.mimeMailMessage(emailDetails);
+
         return EmployeeRegistrationResponse.builder()
                 .responseCode("001")
                 .responseMessage("Employee has been created successfully. Login details have been sent to their email.")
                 .build();
     }
+
 
     @Override
     public String deleteEmployee(Long userId) {
@@ -383,6 +408,18 @@ public class UserServiceImpl implements UserService {
 
         userRepository.deleteById(userId);
         return "User Deleted Successfully";
+    }
+
+    @Override
+    public List<AllEmployeeProfileResponse> getAllEmployeeProfiles() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> AllEmployeeProfileResponse.builder()
+                        .photoUrl(user.getPhotoUrl())
+                        .fullName(user.getFullName())
+                        .position(user.getPosition())
+                        .build())
+                .collect(Collectors.toList());
     }
 
 
