@@ -85,6 +85,8 @@ public class User extends BaseEntity implements UserDetails {
 
     private String profilePicture;
 
+    private boolean isActive;
+
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -67,6 +67,19 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}/activate")
+    public ResponseEntity<String> activateUser(@PathVariable Long id) {
+        String result = userService.activateUser(id);
+
+        if ("User activated successfully".equals(result)) {
+            return ResponseEntity.ok(result);
+        } else if ("User is already active".equals(result)) {
+            return ResponseEntity.status(409).body(result);
+        } else {
+            return ResponseEntity.badRequest().body(result);
+        }
+    }
+
     @GetMapping("/all-employees")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<AllEmployeeProfileResponse>> getAllEmployeeProfiles() {
