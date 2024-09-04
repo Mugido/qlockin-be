@@ -11,6 +11,8 @@ import jakarta.mail.MessagingException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
@@ -29,10 +31,12 @@ public interface UserService {
 
     ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email);
 
-    EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest);
+    EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) throws IOException;
 
     String deleteEmployee (Long userId);
 
     String activateUser(Long userId);
+
+    List<AllEmployeeProfileResponse> getAllEmployeeProfiles();
 
 }
