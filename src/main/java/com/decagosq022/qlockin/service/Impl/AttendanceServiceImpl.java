@@ -1,35 +1,11 @@
-//package com.decagosq022.qlockin.service.Impl;
-//
-//import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
-//import com.decagosq022.qlockin.repository.AttendanceRepository;
-//import com.decagosq022.qlockin.service.AttendanceService;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.List;
-//
-//@Service
-//public class AttendanceServiceImpl implements AttendanceService {
-//
-//    private final AttendanceRepository attendanceRepository;
-//    @Autowired
-//    public AttendanceServiceImpl(AttendanceRepository attendanceRepository){
-//        this.attendanceRepository = attendanceRepository;
-//    }
-//
-//
-//
-//    @Override
-//    public List<AbsenteeismReportResponseDto> getAbsenteeismReport() {
-//        return attendanceRepository.findTotalAbsenteesPerUser();
-//    }
-//}
+
 package com.decagosq022.qlockin.service.Impl;
 
 import com.decagosq022.qlockin.entity.Attendance;
 import com.decagosq022.qlockin.entity.User;
 import com.decagosq022.qlockin.exceptions.NotClockedInException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
+import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
 import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
 import com.decagosq022.qlockin.payload.response.AttendanceResponse;
 import com.decagosq022.qlockin.repository.AttendanceRepository;
@@ -42,7 +18,10 @@ import java.io.NotActiveException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -164,5 +143,36 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .absentEmployees(absentEmployees)
                 .activeEmployees(activeEmployees)
                 .build();
+    }
+
+    @Override
+    public List<AbsenteeismReportResponseDto> getMonthlyAbsenteeismReport(int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startOfMonth = yearMonth.atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
+
+        List<User> users = userRepository.findAll();
+        List<Attendance> attendances = attendanceRepository.findAllByDateBetween(startOfMonth, endOfMonth);
+
+        Map<Long, List<Attendance>> userAttendanceMap = attendances.stream()
+                .collect(Collectors.groupingBy(attendance -> attendance.getCreatedByUser().getId()));
+
+
+        return users.stream().map(user -> {
+            List<Attendance> userAttendances = userAttendanceMap.getOrDefault(user.getId(), List.of());
+            int totalWorkDays = endOfMonth.getDayOfMonth();
+            int absentDays = totalWorkDays - userAttendances.size();
+
+            double absenteeismRate = (double) absentDays / totalWorkDays * 100;
+
+        return AbsenteeismReportResponseDto.builder()
+                .userId(user.getId())
+                .fullName(user.getFullName())
+                .absentDays(absentDays)
+                .totalWorkDays(totalWorkDays)
+                .absenteeismRate(absenteeismRate)
+                .build();
+
+        }).collect(Collectors.toList());
     }
 }

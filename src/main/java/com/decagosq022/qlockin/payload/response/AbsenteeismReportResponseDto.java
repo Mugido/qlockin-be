@@ -15,4 +15,5 @@ public class AbsenteeismReportResponseDto {
     private String fullName;
     private int absentDays;
     private int totalWorkDays;
+    private double absenteeismRate;
 }
