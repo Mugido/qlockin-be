@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,6 +21,12 @@ public class Attendance extends BaseEntity{
     private LocalDateTime default_Qlock_Out;
 
 
+
+    private LocalDateTime qlockIn;
+
+    private LocalDateTime qlockOut;
+
+    private LocalDate date;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "qlockIn_user_id", foreignKey = @ForeignKey(name = "FK_attendance_created_by_user"))

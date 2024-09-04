@@ -56,7 +56,7 @@ public class User extends BaseEntity implements UserDetails {
     @Email(message = "Invalid Email Format")
     private String email;
 
-    @NotBlank(message = " PhoneNumber is required")
+
     private String phoneNumber;
 
     @NotBlank(message = " Password is required")
@@ -84,6 +84,8 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDateTime resetTokenCreationTime;
 
     private String profilePicture;
+
+    private boolean isActive;
 
 
     @ManyToMany(fetch = FetchType.EAGER)

@@ -3,7 +3,10 @@ package com.decagosq022.qlockin.payload.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jdk.jfr.Timestamp;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -15,7 +18,7 @@ import java.time.LocalTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EmployeeRegistrationRequest {
-    private String photoUrl;
+//    private String photoUrl;
 
     @NotBlank(message = "First name is required")
     private String firstName;
@@ -38,7 +41,6 @@ public class EmployeeRegistrationRequest {
     @NotBlank(message = " JOb Title is required")
     private String jobTitle;
 
-    @NotNull(message = "Shift time is required")
     private LocalTime shiftTime;
 
     @NotNull(message = "Date of hire is required")
@@ -49,6 +51,8 @@ public class EmployeeRegistrationRequest {
 
     private String employeeStatus;
 
-    private String phoneNumber;
+    private String employeeId;
+
+    private MultipartFile profilePicture;
 
 }
