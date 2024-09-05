@@ -6,12 +6,15 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -29,11 +32,31 @@ public class User extends BaseEntity implements UserDetails {
     @NotBlank(message = "Full name is required")
     private String fullName;
 
+    private String preferredName;
+
+
+    private LocalDate dateOfBirth;
+
+
+    private String department;
+
+
+    private LocalDate dateOfHire;
+
+
+    private LocalTime shiftTime;
+
+
+    private String employeeStatus;
+
+
+    private String division;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid Email Format")
     private String email;
 
-    @NotBlank(message = " PhoneNumber is required")
+
     private String phoneNumber;
 
     @NotBlank(message = " Password is required")
@@ -59,6 +82,10 @@ public class User extends BaseEntity implements UserDetails {
 
     // monitor token creation time and expiration time
     private LocalDateTime resetTokenCreationTime;
+
+    private String profilePicture;
+
+    private boolean isActive;
 
 
     @ManyToMany(fetch = FetchType.EAGER)

@@ -28,4 +28,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleExpiredJwtException(ExpiredJwtException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Object> handleUserAlreadyExistsException(UserAlreadyExistsException e){
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<Object> handleInvalidInputException(InvalidInputException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(NotClockedInException.class)
+    public ResponseEntity<Object> handleNotClockedInException(NotClockedInException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(NotActiveExceptions.class)
+    public ResponseEntity<Object> handleNotActiveExceptions(NotActiveExceptions e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
 }

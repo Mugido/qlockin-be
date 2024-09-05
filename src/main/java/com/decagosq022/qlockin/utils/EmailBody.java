@@ -95,5 +95,96 @@ public class EmailBody {
                     "</body>\n" +
                     "</html>";
         }
+
+
+    public static String addEmployeeEmailBody(String fullName, String employeeId, String password, String link) {
+
+        return "<!DOCTYPE html>\n" +
+                "<html lang=\"en\">\n" +
+                "<head>\n" +
+                "    <meta charset=\"UTF-8\">\n" +
+                "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+                "    <title>Email Verification</title>\n" +
+                "    <style>\n" +
+                "        body, h1, p {\n" +
+                "            margin: 0;\n" +
+                "            padding: 0;\n" +
+                "        }\n" +
+                "\n" +
+                "        body {\n" +
+                "            font-family: 'Inter', serif;\n" +
+                "            line-height: 1.6;\n" +
+                "        }\n" +
+                "\n" +
+                "        .email-wrapper {\n" +
+                "            max-width: 600px;\n" +
+                "            margin: 0 auto;\n" +
+                "            padding: 20px;\n" +
+                "            box-shadow: 1px 1px 2px #6A0DAD;\n" +
+                "        }\n" +
+                "\n" +
+                "        .header {\n" +
+                "            background-color: #6A0DAD;\n" +
+                "            color: #FFFFFF;\n" +
+                "            text-align: center;\n" +
+                "            padding: 20px 0;\n" +
+                "            border-radius: 8px;\n" +
+                "        }\n" +
+                "\n" +
+                "        .content {\n" +
+                "            padding: 20px;\n" +
+                "            background-color: #FFFFFF;\n" +
+                "            border-radius: 8px;\n" +
+                "        }\n" +
+                "\n" +
+                "        .btn {\n" +
+                "            display: inline-block;\n" +
+                "            background-color: #FFFFFF;\n" +
+                "            color: black;\n" +
+                "            text-decoration: none;\n" +
+                "            padding: 10px 20px;\n" +
+                "            border-radius: 5px;\n" +
+                "            margin-top: 20px;\n" +
+                "            margin-bottom: 20px;\n" +
+                "            box-shadow: 1px 1px 1px 2px #6A0DAD;\n" +
+                "        }\n" +
+                "\n" +
+                "        .footer {\n" +
+                "            text-align: left;\n" +
+                "            margin-top: 20px;\n" +
+                "            padding-left: 20px;\n" +
+                "            font-size: 12px;\n" +
+                "        }\n" +
+                "\n" +
+                "        @media screen and (max-width: 600px) {\n" +
+                "            .email-wrapper {\n" +
+                "                width: 100%;\n" +
+                "            }\n" +
+                "        }\n" +
+                "    </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "<div class=\"email-wrapper\">\n" +
+                "    <div class=\"header\">\n" +
+                "        <h1>Welcome to Qlock-in!</h1>\n" +
+                "    </div>\n" +
+                "\n" +
+                "    <div class=\"content\">\n" +
+                "        <p>Hello " + fullName + ",</p>\n" +
+                "        <p>We are excited to have you join us at Qlock-in! To get started, please use the following credentials to log in to your account:</p>\n" +
+                "        <p><strong>Employee ID:</strong> " + employeeId + "</p>\n" +
+                "        <p><strong>Password:</strong> " + password + "</p>\n" +
+                "        <p>Please click the link below to log in to your account and complete the setup process.</p>\n" +
+                "        <a href=\"" + link + "\" class=\"btn\">Login</a>\n" +
+                "        <p>If you did not register with us, please ignore this email.</p>\n" +
+                "    </div>\n" +
+                "\n" +
+                "    <div class=\"footer\">\n" +
+                "        <p>Thank you,<br>&copy;<b>Qlock-in Team</b>.</p>\n" +
+                "    </div>\n" +
+                "</div>\n" +
+                "</body>\n" +
+                "</html>";
+    }
     }
 

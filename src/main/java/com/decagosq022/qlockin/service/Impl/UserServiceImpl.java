@@ -6,21 +6,16 @@ import com.decagosq022.qlockin.entity.Role;
 import com.decagosq022.qlockin.entity.User;
 import com.decagosq022.qlockin.enums.RoleName;
 import com.decagosq022.qlockin.enums.TokenType;
-import com.decagosq022.qlockin.exceptions.AlreadyExistsException;
-import com.decagosq022.qlockin.exceptions.NotEnabledException;
-import com.decagosq022.qlockin.exceptions.NotFoundException;
+import com.decagosq022.qlockin.exceptions.*;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
-import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
-import com.decagosq022.qlockin.payload.response.LoginInfo;
-import com.decagosq022.qlockin.payload.response.LoginResponse;
-import com.decagosq022.qlockin.payload.response.UserDetailsResponseDto;
-import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
 import com.decagosq022.qlockin.repository.JTokenRepository;
 import com.decagosq022.qlockin.repository.RoleRepository;
 import com.decagosq022.qlockin.repository.UserRepository;
 import com.decagosq022.qlockin.service.EmailService;
+import com.decagosq022.qlockin.service.FileUploadService;
 import com.decagosq022.qlockin.service.UserService;
 import com.decagosq022.qlockin.utils.AccountUtils;
 import com.decagosq022.qlockin.utils.EmailBody;
@@ -28,19 +23,21 @@ import com.decagosq022.qlockin.utils.EmailUtil;
 import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.security.SecureRandom;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -58,6 +55,7 @@ public class UserServiceImpl implements UserService {
     private final AccountUtils accountUtils;
     private final RoleRepository roleRepository;
     private final EmailService emailService;
+    private final FileUploadService fileUploadService;
 
 
     @Override
@@ -161,7 +159,7 @@ public class UserServiceImpl implements UserService {
 
         return LoginResponse.builder()
                 .responseCode("002")
-                .responseMessage("Your have been login successfully")
+                .responseMessage("Your have been logged in successfully")
                 .loginInfo(LoginInfo.builder()
                         .email(person.getEmail())
                         .token(jwtToken)
@@ -296,5 +294,172 @@ public class UserServiceImpl implements UserService {
                 .responseCode("200")
                 .responseMessage("Password changed successfully")
                 .build();
+    }
+
+    @Override
+    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) throws IOException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User authenticatedUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
+
+        boolean isUser = authenticatedUser.getRoles().stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.USER));
+
+        if (!isUser) {
+            throw new SecurityException("Only users with the USER role can add new employees.");
+        }
+
+        Optional<User> existingUser = userRepository.findByEmail(registerRequest.getEmail());
+        if (existingUser.isPresent()) {
+            throw new UserAlreadyExistsException("User already exists, please Login");
+        }
+
+        Role userRole = roleRepository.findByRoleName(RoleName.USER)
+                .orElseThrow(() -> new NotFoundException("Role 'USER' not found in the database."));
+
+        Set<Role> roles = new HashSet<>();
+        roles.add(userRole);
+
+        // Validate employeeId format
+        String employeeIdPattern = "^[A-Z]{2}\\d{6}$"; // Two letters followed by six digits
+        if (!registerRequest.getEmployeeId().matches(employeeIdPattern)) {
+            throw new InvalidInputException("Employee ID must follow the pattern: Two letters followed by six digits (e.g., JQ959623).");
+        }
+
+        // Check if employeeId already exists
+        Optional<User> existingEmployeeId = userRepository.findByEmployeeId(registerRequest.getEmployeeId());
+        if (existingEmployeeId.isPresent()) {
+            throw new UserAlreadyExistsException("Employee ID already exists, please use a different one.");
+        }
+
+        String generatedPassword = AccountUtils.generatePassword();
+
+        // Upload profile picture if provided
+        String profilePictureUrl = null;
+        if (registerRequest.getProfilePicture() != null && !registerRequest.getProfilePicture().isEmpty()) {
+            try {
+                profilePictureUrl = fileUploadService.uploadFile(registerRequest.getProfilePicture());
+            } catch (FileSizeLimitExceededException e) {
+                throw new InvalidInputException("Profile picture file size exceeds the allowable limit.");
+            } catch (IOException e) {
+                throw new InvalidInputException("An error occurred while uploading the profile picture. Please try again.");
+            }
+        }
+
+        User user = User.builder()
+                .photoUrl(profilePictureUrl)
+                .employeeId(registerRequest.getEmployeeId())
+                .fullName(registerRequest.getFirstName() + " " + registerRequest.getLastName())
+                .dateOfBirth(registerRequest.getDateOfBirth())
+                .preferredName(registerRequest.getPreferredName())
+                .email(registerRequest.getEmail())
+                .department(registerRequest.getDepartment())
+                .position(registerRequest.getJobTitle())
+                .shiftTime(registerRequest.getShiftTime()) // the time format is 09:30:00
+                .dateOfHire(registerRequest.getDateOfHire())
+                .division(registerRequest.getDivision())
+                .employeeStatus(registerRequest.getEmployeeStatus())
+                .password(passwordEncoder.encode(generatedPassword))
+                .roles(roles)
+                .enabled(true)
+                .build();
+
+        // Save the new user to the repository
+        User savedUser = userRepository.save(user);
+
+        // Send a welcome email
+        String loginLink = EmailUtil.getLoginUrl();
+        String emailContent = EmailBody.addEmployeeEmailBody(savedUser.getFullName(), savedUser.getEmployeeId(), generatedPassword, loginLink);
+        EmailDetails emailDetails = EmailDetails.builder()
+                .fullName(savedUser.getFullName())
+                .employeeId(savedUser.getEmployeeId())
+                .recipient(savedUser.getEmail())
+                .subject("Welcome to Qlock-in")
+                .messageBody(emailContent)
+                .build();
+
+        emailService.mimeMailMessage(emailDetails);
+
+        return EmployeeRegistrationResponse.builder()
+                .responseCode("001")
+                .responseMessage("Employee has been created successfully. Login details have been sent to their email.")
+                .build();
+    }
+
+
+    @Override
+    public String deleteEmployee(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (Objects.equals(user.getId(), userId))
+        {
+
+            throw new NotEnabledException("Cannot perform this action");
+        }
+
+        boolean existingUser= userRepository.existsById(userId);
+        if (!existingUser) {
+            throw new NotFoundException("User does not exist");
+        }
+
+        userRepository.deleteById(userId);
+        return "User Deleted Successfully";
+    }
+
+    @Override
+    public List<AllEmployeeProfileResponse> getAllEmployeeProfiles() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(user -> AllEmployeeProfileResponse.builder()
+                        .photoUrl(user.getPhotoUrl())
+                        .fullName(user.getFullName())
+                        .position(user.getPosition())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email) {
+        Optional<User> userEntityOptional =
+                userRepository.findByEmail(email);
+
+        String fileUrl = null;
+        try{
+            if (userEntityOptional.isPresent()){
+                fileUrl = fileUploadService.uploadFile(file);
+                User userEntity= userEntityOptional.get();
+                userEntity.setProfilePicture(fileUrl);
+
+                userRepository.save(userEntity);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.ok(
+                new UploadResponse(
+                        "Upload Successfully",
+                        fileUrl
+                )
+        );
+    }
+
+    public String activateUser(Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+
+        if (user.isActive()) {
+            return "User is already active";
+        }
+
+        user.setActive(true);
+        userRepository.save(user);
+
+        return "User activated successfully";
     }
 }
