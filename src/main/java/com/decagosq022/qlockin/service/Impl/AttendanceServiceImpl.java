@@ -7,6 +7,7 @@ import com.decagosq022.qlockin.exceptions.NotClockedInException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
 import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
 import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
+import com.decagosq022.qlockin.payload.response.AttendanceReportDto;
 import com.decagosq022.qlockin.payload.response.AttendanceResponse;
 import com.decagosq022.qlockin.repository.AttendanceRepository;
 import com.decagosq022.qlockin.repository.UserRepository;
@@ -15,10 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.NotActiveException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.YearMonth;
+import java.time.*;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -175,4 +173,41 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         }).collect(Collectors.toList());
     }
+
+    @Override
+    public List<AttendanceReportDto> getAttendanceReport(String email, LocalDate date) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<Attendance> attendances = attendanceRepository.findAllByDate(date);
+
+        return attendances.stream().map(attendance -> {
+            String status;
+            LocalDateTime qlockIn = attendance.getQlockIn();
+            LocalDateTime qlockOut = attendance.getQlockOut();
+            long totalHours = 0;
+
+            if (qlockIn == null) {
+                status = "Absent";
+            } else {
+                totalHours = Duration.between(qlockIn, qlockOut != null ? qlockOut : LocalDateTime.now()).toHours();
+
+                status = qlockIn.toLocalTime().isBefore(LocalTime.of(8, 0)) ? "Early" : "Late";
+            }
+
+            // No return keyword, directly creating the AttendanceReportDto object
+            return new AttendanceReportDto(
+                    attendance.getCreatedByUser().getEmployeeId(),
+                    attendance.getCreatedByUser().getFullName(),
+                    qlockIn,
+                    qlockOut,
+                    totalHours,
+                    status
+            );
+        }).collect(Collectors.toList());
+
+
+
+    }
+
+
 }

@@ -2,6 +2,7 @@ package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
 import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
+import com.decagosq022.qlockin.payload.response.AttendanceReportDto;
 import com.decagosq022.qlockin.payload.response.AttendanceResponse;
 import com.decagosq022.qlockin.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,14 @@ public class AttendanceController {
     public ResponseEntity<List<AbsenteeismReportResponseDto>> getMonthlyAbsenteeismReport(
             @RequestParam int year, @RequestParam int month){
         List<AbsenteeismReportResponseDto> report = attendanceService.getMonthlyAbsenteeismReport(year, month);
+        return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/attendancereport")
+    public ResponseEntity<List<AttendanceReportDto>> getAttendanceReport(@RequestParam LocalDate date) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+       List <AttendanceReportDto> report = attendanceService.getAttendanceReport(currentUsername, date);
         return ResponseEntity.ok(report);
     }
 }
