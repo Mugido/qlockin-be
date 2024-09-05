@@ -5,10 +5,7 @@ import com.decagosq022.qlockin.entity.Attendance;
 import com.decagosq022.qlockin.entity.User;
 import com.decagosq022.qlockin.exceptions.NotClockedInException;
 import com.decagosq022.qlockin.exceptions.NotFoundException;
-import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
-import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
-import com.decagosq022.qlockin.payload.response.AttendanceReportDto;
-import com.decagosq022.qlockin.payload.response.AttendanceResponse;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.repository.AttendanceRepository;
 import com.decagosq022.qlockin.repository.UserRepository;
 import com.decagosq022.qlockin.service.AttendanceService;
@@ -17,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.NotActiveException;
 import java.time.*;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -207,6 +205,46 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
 
+    }
+
+
+    @Override
+    public AttendanceOvertimeDto getOvertimeReport(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        LocalDate weekEnd = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+
+        List<Attendance> attendanceList = attendanceRepository.findByCreatedByUserAndDateBetween(user, weekStart, weekEnd);
+
+        Duration totalRegularHours = Duration.ZERO;
+        Duration totalOvertimeHours = Duration.ZERO;
+
+        for (Attendance attendance : attendanceList) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                Duration workedHours = Duration.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+                // Assuming 8 hours as the regular workday
+                Duration regularHours = Duration.ofHours(8);
+
+                if (workedHours.compareTo(regularHours) > 0) {
+                    totalRegularHours = totalRegularHours.plus(regularHours);
+                    totalOvertimeHours = totalOvertimeHours.plus(workedHours.minus(regularHours));
+                } else {
+                    totalRegularHours = totalRegularHours.plus(workedHours);
+                }
+            }
+        }
+        AttendanceOvertimeDto report = AttendanceOvertimeDto.builder()
+                .fullName(user.getFullName())
+                .employeeId(user.getEmployeeId())
+                .regularHours(totalRegularHours)
+                .overtimeHours(totalOvertimeHours)
+                .totalHours(totalRegularHours.plus(totalOvertimeHours))
+                .build();
+
+        return report;
     }
 
 
