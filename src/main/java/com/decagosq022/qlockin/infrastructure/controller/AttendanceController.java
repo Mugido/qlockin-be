@@ -40,7 +40,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<AttendanceDataDto> getAllAttendanceData(@RequestParam LocalDate date) {
+    public ResponseEntity<?> getAllAttendanceData(@RequestParam LocalDate date) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         AttendanceDataDto stats = attendanceService.getAllAttendanceStat(currentUsername, date);
