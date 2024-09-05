@@ -2,10 +2,7 @@
 package com.decagosq022.qlockin.service;
 
 import com.decagosq022.qlockin.exceptions.NotActiveExceptions;
-import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
-import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
-import com.decagosq022.qlockin.payload.response.AttendanceReportDto;
-import com.decagosq022.qlockin.payload.response.AttendanceResponse;
+import com.decagosq022.qlockin.payload.response.*;
 
 import java.io.NotActiveException;
 import java.time.LocalDate;
@@ -21,5 +18,7 @@ public interface AttendanceService {
     List<AbsenteeismReportResponseDto> getMonthlyAbsenteeismReport(int year, int month);
 
     List<AttendanceReportDto> getAttendanceReport(String email, LocalDate date);
+
+    AttendanceOvertimeDto getOvertimeReport(String email);
 
 }
