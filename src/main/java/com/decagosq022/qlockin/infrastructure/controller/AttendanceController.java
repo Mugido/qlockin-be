@@ -1,9 +1,6 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
-import com.decagosq022.qlockin.payload.response.AbsenteeismReportResponseDto;
-import com.decagosq022.qlockin.payload.response.AttendanceDataDto;
-import com.decagosq022.qlockin.payload.response.AttendanceReportDto;
-import com.decagosq022.qlockin.payload.response.AttendanceResponse;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.AttendanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -59,5 +56,13 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
        List <AttendanceReportDto> report = attendanceService.getAttendanceReport(currentUsername, date);
         return ResponseEntity.ok(report);
+    }
+
+    @GetMapping("/overtime")
+    public ResponseEntity<AttendanceOvertimeDto> getOvertimeData(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        AttendanceOvertimeDto response = attendanceService.getOvertimeReport(currentUsername);
+        return ResponseEntity.ok(response);
     }
 }
