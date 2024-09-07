@@ -81,4 +81,12 @@ public class AttendanceController {
         AttendanceOvertimeDto response = attendanceService.getOvertimeReport(currentUsername);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/latecomer")
+    public ResponseEntity<?> lateComer(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        return ResponseEntity.ok("response "+currentUsername+" latecomer info");
+    }
 }

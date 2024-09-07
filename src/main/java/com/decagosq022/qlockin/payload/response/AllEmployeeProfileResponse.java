@@ -20,4 +20,6 @@ public class AllEmployeeProfileResponse {
 
     private String position;
 
+    private Long id;
+
 }

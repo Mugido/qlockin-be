@@ -412,12 +412,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<AllEmployeeProfileResponse> getAllEmployeeProfiles() {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
         List<User> users = userRepository.findAll();
         return users.stream()
                 .map(user -> AllEmployeeProfileResponse.builder()
                         .profilePicture(user.getProfilePicture())
                         .fullName(user.getFullName())
                         .position(user.getPosition())
+                        .id(user.getId())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -449,6 +457,12 @@ public class UserServiceImpl implements UserService {
     }
 
     public String activateUser(Long userId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));

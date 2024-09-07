@@ -90,5 +90,11 @@ public class UserController {
         return ResponseEntity.ok(profiles);
     }
 
+    @GetMapping("/employee-details/{id}")
+    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ResponseEntity.ok("user details "+currentUsername+" "+id);
+    }
 
 }
