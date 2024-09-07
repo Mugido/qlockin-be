@@ -6,6 +6,7 @@ import com.decagosq022.qlockin.payload.response.AllEmployeeProfileResponse;
 import com.decagosq022.qlockin.payload.response.EmployeeRegistrationResponse;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
 import com.decagosq022.qlockin.payload.response.UploadResponse;
+import com.decagosq022.qlockin.service.ReverseAuthService;
 import com.decagosq022.qlockin.service.UserService;
 import jakarta.mail.MessagingException;
 import com.decagosq022.qlockin.utils.AppConstants;
@@ -31,6 +32,8 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+
+
 
     @GetMapping("/")
     public ResponseEntity<?> getUserByEmail() {
@@ -87,5 +90,11 @@ public class UserController {
         return ResponseEntity.ok(profiles);
     }
 
+    @GetMapping("/employee-details/{id}")
+    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ResponseEntity.ok("user details "+currentUsername+" "+id);
+    }
 
 }

@@ -20,7 +20,7 @@ public class UserDetailsResponseDto {
     private String position;
     private String employeeId;
     private String roleName;
-    private String photoUrl;
+    private String profilePicture;
 
 
 

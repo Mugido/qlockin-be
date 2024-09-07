@@ -2,6 +2,7 @@ package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.AttendanceService;
+import com.decagosq022.qlockin.service.ReverseAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,8 @@ import java.util.List;
 @RequestMapping("/api/attendance")
 public class AttendanceController {
     private final AttendanceService attendanceService;
+
+    private final ReverseAuthService reverseAuthService;
 
     @PostMapping("/clockIn")
     public ResponseEntity<AttendanceResponse> clockIn(@RequestParam String employeeId) throws NotActiveException {
@@ -36,8 +39,21 @@ public class AttendanceController {
         return ResponseEntity.ok(response);
     }
 
+
+    @PostMapping("/login/start")
+    public ResponseEntity<?> startLogin(@RequestParam String username){
+        AuthVerifyResponseDTO response = reverseAuthService.startLogin(username);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login/finish")
+    public ResponseEntity<Boolean> finishLogin(@RequestParam String username, @RequestBody String credential){
+        boolean success = reverseAuthService.finishLogin(username, credential);
+        return ResponseEntity.ok(success);
+    }
+
     @GetMapping("/stats")
-    public ResponseEntity<AttendanceDataDto> getAllAttendanceData(@RequestParam LocalDate date) {
+    public ResponseEntity<?> getAllAttendanceData(@RequestParam LocalDate date) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         AttendanceDataDto stats = attendanceService.getAllAttendanceStat(currentUsername, date);
@@ -64,5 +80,13 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
         AttendanceOvertimeDto response = attendanceService.getOvertimeReport(currentUsername);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/latecomer")
+    public ResponseEntity<?> lateComer(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+
+        return ResponseEntity.ok("response "+currentUsername+" latecomer info");
     }
 }

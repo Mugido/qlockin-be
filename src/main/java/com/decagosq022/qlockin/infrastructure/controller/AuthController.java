@@ -1,9 +1,11 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.payload.request.*;
+import com.decagosq022.qlockin.payload.response.AuthRegisterResponse;
 import com.decagosq022.qlockin.payload.response.ChangePasswordResponse;
 import com.decagosq022.qlockin.payload.response.LoginResponse;
 import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
+import com.decagosq022.qlockin.service.ReverseAuthService;
 import com.decagosq022.qlockin.service.TokenValidationService;
 import com.decagosq022.qlockin.service.UserService;
 import jakarta.mail.MessagingException;
@@ -23,6 +25,7 @@ public class AuthController {
 
     private final UserService userService;
     private final TokenValidationService tokenValidationService;
+    private final ReverseAuthService reverseAuthService;
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> registerUser(@Valid @RequestBody UserRegisterRequest registerRequest) {
@@ -37,6 +40,19 @@ public class AuthController {
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+
+    @PostMapping("/register/start")
+    public ResponseEntity<?> startRegistration(@RequestParam String username){
+        AuthRegisterResponse response = reverseAuthService.registerAuthUser(username);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register/finish")
+    public ResponseEntity<Boolean> finishRegistration(@RequestParam String username, @RequestBody String credential){
+        boolean success = reverseAuthService.finishRegisterAuthUser(username, credential);
+        return ResponseEntity.ok(success);
     }
 
     @PostMapping("/login")
