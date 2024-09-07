@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AllEmployeeProfileResponse {
 
-    private String photoUrl;
+    private String profilePicture;
 
     private String fullName;
 

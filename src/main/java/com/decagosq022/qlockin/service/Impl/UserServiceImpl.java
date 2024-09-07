@@ -191,8 +191,7 @@ public class UserServiceImpl implements UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .roleName(roleStr.toString())
                 .position(user.getPosition())
-                .photoUrl(user.getPhotoUrl())
-
+                .profilePicture(user.getProfilePicture())
                 .build();
     }
 
@@ -347,7 +346,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = User.builder()
-                .photoUrl(profilePictureUrl)
+                .profilePicture(profilePictureUrl)
                 .employeeId(registerRequest.getEmployeeId())
                 .fullName(registerRequest.getFirstName() + " " + registerRequest.getLastName())
                 .dateOfBirth(registerRequest.getDateOfBirth())
@@ -361,6 +360,7 @@ public class UserServiceImpl implements UserService {
                 .employeeStatus(registerRequest.getEmployeeStatus())
                 .password(passwordEncoder.encode(generatedPassword))
                 .roles(roles)
+                .isActive(true)
                 .enabled(true)
                 .build();
 
@@ -415,7 +415,7 @@ public class UserServiceImpl implements UserService {
         List<User> users = userRepository.findAll();
         return users.stream()
                 .map(user -> AllEmployeeProfileResponse.builder()
-                        .photoUrl(user.getPhotoUrl())
+                        .profilePicture(user.getProfilePicture())
                         .fullName(user.getFullName())
                         .position(user.getPosition())
                         .build())

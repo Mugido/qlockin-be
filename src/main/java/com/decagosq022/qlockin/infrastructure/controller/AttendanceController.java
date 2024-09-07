@@ -2,6 +2,7 @@ package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.AttendanceService;
+import com.decagosq022.qlockin.service.ReverseAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -17,6 +18,8 @@ import java.util.List;
 @RequestMapping("/api/attendance")
 public class AttendanceController {
     private final AttendanceService attendanceService;
+
+    private final ReverseAuthService reverseAuthService;
 
     @PostMapping("/clockIn")
     public ResponseEntity<AttendanceResponse> clockIn(@RequestParam String employeeId) throws NotActiveException {
@@ -34,6 +37,19 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
         AttendanceResponse response = attendanceService.clockOut(currentUsername, employeeId);
         return ResponseEntity.ok(response);
+    }
+
+
+    @PostMapping("/login/start")
+    public ResponseEntity<?> startLogin(@RequestParam String username){
+        AuthVerifyResponseDTO response = reverseAuthService.startLogin(username);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login/finish")
+    public ResponseEntity<Boolean> finishLogin(@RequestParam String username, @RequestBody String credential){
+        boolean success = reverseAuthService.finishLogin(username, credential);
+        return ResponseEntity.ok(success);
     }
 
     @GetMapping("/stats")

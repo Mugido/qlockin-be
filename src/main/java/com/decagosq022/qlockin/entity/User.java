@@ -44,7 +44,9 @@ public class User extends BaseEntity implements UserDetails {
     private LocalDate dateOfHire;
 
 
-    private LocalTime shiftTime;
+   // private LocalTime shiftTime;
+
+    private String shiftTime;
 
 
     private String employeeStatus;
@@ -73,7 +75,7 @@ public class User extends BaseEntity implements UserDetails {
 
     private String employeeId;
 
-    private String photoUrl;
+   // private String photoUrl;
 
     private boolean enabled;
 

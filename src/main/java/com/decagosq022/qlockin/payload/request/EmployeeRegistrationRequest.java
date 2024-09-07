@@ -41,7 +41,10 @@ public class EmployeeRegistrationRequest {
     @NotBlank(message = " JOb Title is required")
     private String jobTitle;
 
-    private LocalTime shiftTime;
+//    private LocalTime shiftTime;
+
+    @NotBlank(message = "Shift cannot be blank")
+    private String shiftTime;
 
     @NotNull(message = "Date of hire is required")
     private LocalDate dateOfHire;

@@ -174,9 +174,9 @@ public class EmailBody {
                 "        <p>We are excited to have you join us at Qlock-in! To get started, please use the following credentials to log in to your account:</p>\n" +
                 "        <p><strong>Employee ID:</strong> " + employeeId + "</p>\n" +
                 "        <p><strong>Password:</strong> " + password + "</p>\n" +
-                "        <p>Please click the link below to log in to your account and complete the setup process.</p>\n" +
+                "        <p>Please click the link below to Register your pass key. Which will enable you to clock in and out with your device.</p>\n" +
                 "        <a href=\"" + link + "\" class=\"btn\">Login</a>\n" +
-                "        <p>If you did not register with us, please ignore this email.</p>\n" +
+                "        <p>If this message is not meant for you, please ignore this email.</p>\n" +
                 "    </div>\n" +
                 "\n" +
                 "    <div class=\"footer\">\n" +
