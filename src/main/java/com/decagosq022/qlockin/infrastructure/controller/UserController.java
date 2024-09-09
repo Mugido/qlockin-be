@@ -83,6 +83,16 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUserById(@PathVariable Long id) {
+        boolean isRemoved = userService.deleteUserById(id);
+        if (isRemoved) {
+            return ResponseEntity.ok("User deleted successfully");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+    }
+
     @GetMapping("/all-employees")
 //    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity<List<AllEmployeeProfileResponse>> getAllEmployeeProfiles() {
