@@ -476,4 +476,13 @@ public class UserServiceImpl implements UserService {
 
         return "User activated successfully";
     }
+
+    public boolean deleteUserById(Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
 }
