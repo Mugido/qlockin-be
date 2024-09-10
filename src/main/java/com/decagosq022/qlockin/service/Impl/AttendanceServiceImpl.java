@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.io.NotActiveException;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     public AttendanceResponse clockIn(String email, String employeeId) throws NotActiveException {
 
         //User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
-        User user = userRepository.findByEmployeeId(employeeId).orElse(null);
+         User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
         if(user == null) {
             throw new NotFoundException("User not found");
@@ -72,8 +73,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public AttendanceResponse clockOut(String email, String employeeId) {
         //User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
-
-        User user = userRepository.findByEmployeeId(employeeId).orElse(null);
+         User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
         if(user == null) {
             throw new NotFoundException("User not found");
@@ -249,6 +249,63 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return report;
     }
+    @Override
+    public List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
+        List<Attendance> attendanceList = attendanceRepository.findAll();
+
+        List<AttendanceOvertimeDto> generalList = new ArrayList<>();
+
+        for(Attendance attendance : attendanceList){
+
+            AttendanceOvertimeDto singletOvertime = getSingleOvertime(attendance.getCreatedByUser());
+
+            generalList.add(singletOvertime);
+
+
+        }
+
+        return generalList;
+
+
+    }
+
+    private AttendanceOvertimeDto getSingleOvertime(User user){
+        LocalDate today = LocalDate.now();
+        LocalDate weekStart = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+        LocalDate weekEnd = today.with(TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY));
+
+        List<Attendance> attendanceList = attendanceRepository.findByCreatedByUserAndDateBetween(user, weekStart, weekEnd);
+
+        Duration totalRegularHours = Duration.ZERO;
+        Duration totalOvertimeHours = Duration.ZERO;
+
+        for (Attendance attendance : attendanceList) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                Duration workedHours = Duration.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+                // Assuming 8 hours as the regular workday
+                Duration regularHours = Duration.ofHours(8);
+
+                if (workedHours.compareTo(regularHours) > 0) {
+                    totalRegularHours = totalRegularHours.plus(regularHours);
+                    totalOvertimeHours = totalOvertimeHours.plus(workedHours.minus(regularHours));
+                } else {
+                    totalRegularHours = totalRegularHours.plus(workedHours);
+                }
+            }
+        }
+
+        AttendanceOvertimeDto report = AttendanceOvertimeDto.builder()
+                .fullName(user.getFullName())
+                .employeeId(user.getEmployeeId())
+                .regularHours(totalRegularHours)
+                .overtimeHours(totalOvertimeHours)
+                .totalHours(totalRegularHours.plus(totalOvertimeHours))
+                .build();
+
+        return report;
+    }
 
 }
