@@ -165,11 +165,11 @@ public class AttendanceServiceImpl implements AttendanceService {
             double absenteeismRate = (double) absentDays / totalWorkDays * 100;
 
         return AbsenteeismReportResponseDto.builder()
-                .userId(user.getId())
+                .userId(user.getEmployeeId())
                 .fullName(user.getFullName())
                 .absentDays(absentDays)
                 .totalWorkDays(totalWorkDays)
-                .absenteeismRate(absenteeismRate)
+                .absenteeismRate(Math.ceil(absenteeismRate))
                 .build();
 
         }).collect(Collectors.toList());
