@@ -28,7 +28,8 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public AttendanceResponse clockIn(String email, String employeeId) throws NotActiveException {
 
-        User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
+        //User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
+         User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
         if(user == null) {
             throw new NotFoundException("User not found");
