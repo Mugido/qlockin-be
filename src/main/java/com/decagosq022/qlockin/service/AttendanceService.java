@@ -21,4 +21,6 @@ public interface AttendanceService {
 
     AttendanceOvertimeDto getOvertimeReport(String email);
 
+    List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email);
+
 }
