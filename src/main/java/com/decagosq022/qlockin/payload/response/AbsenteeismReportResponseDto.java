@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class AbsenteeismReportResponseDto {
-    private Long userId;
+    private String userId;
     private String fullName;
     private int absentDays;
     private int totalWorkDays;
