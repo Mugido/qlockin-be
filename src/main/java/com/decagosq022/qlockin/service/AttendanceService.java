@@ -23,4 +23,6 @@ public interface AttendanceService {
 
     List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email);
 
+    List<LateComersReport> generalLateComersReport (String email, int year, int month );
+
 }

@@ -4,6 +4,8 @@ package com.decagosq022.qlockin.repository;
 import com.decagosq022.qlockin.entity.Attendance;
 import com.decagosq022.qlockin.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,4 +23,7 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findAllByDateBetween(LocalDate startDate, LocalDate endDate);
 
     List<Attendance> findByCreatedByUserAndDateBetween(User user, LocalDate weekStart, LocalDate weekEnd);
+
+    @Query("SELECT a FROM Attendance a WHERE a.createdByUser.id = :userId AND YEAR(a.date) = :year AND MONTH(a.date) = :month")
+    List<Attendance> findByCreatedByUserAndYearAndMonth(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
 }
