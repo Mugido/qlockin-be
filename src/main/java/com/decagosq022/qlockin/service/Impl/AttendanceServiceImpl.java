@@ -16,6 +16,7 @@ import java.io.NotActiveException;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -304,6 +305,76 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .overtimeHours(totalOvertimeHours)
                 .totalHours(totalRegularHours.plus(totalOvertimeHours))
                 .build();
+
+        return report;
+    }
+
+
+    @Override
+    public List<LateComersReport> generalLateComersReport(String email, int year, int month) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<Attendance> attendances = attendanceRepository.findAll();
+
+        List<LateComersReport> reports = new ArrayList<>();
+
+        HashSet<User> user = new HashSet<>();
+        for(Attendance attendance : attendances) {
+            user.add(attendance.getCreatedByUser());
+        }
+
+        for(User user1 : user) {
+            LateComersReport report = getLateComersReport(user1,year, month);
+
+            reports.add(report);
+        }
+
+        return reports;
+    }
+
+
+    private long calculateTotalWorkdays(int year, int month) {
+        LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
+        LocalDate lastDayOfMonth = firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
+
+        return firstDayOfMonth.datesUntil(lastDayOfMonth.plusDays(1))
+                .filter(date -> !(date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY))
+                .count();
+
+    }
+
+
+    private LateComersReport getLateComersReport(User user, int year, int month) {
+
+
+        List<Attendance> attendances = attendanceRepository.findByCreatedByUserAndYearAndMonth(user.getId(), year, month);
+
+        long totalWorkDays = calculateTotalWorkdays(year, month);
+
+        Map<User, List<Attendance>> attendanceByUser = attendances.stream()
+                .collect(Collectors.groupingBy(Attendance::getCreatedByUser));
+
+        List<LateComersReport> userReports = attendanceByUser.entrySet().stream()
+                .map(entry -> {
+                    User users = entry.getKey();
+                    List<Attendance> attendance = entry.getValue();
+
+                    Long lateArrivals = attendance.stream()
+                            .filter(att -> att.getQlockIn() != null && att.getQlockIn().toLocalTime().isAfter(LocalTime.of(8,0)))
+                            .count();
+
+                    Double latePercentage = (double) lateArrivals / totalWorkDays * 100;
+
+                    return LateComersReport.builder()
+                            .employeeId(users.getEmployeeId())
+                            .fullName(users.getFullName())
+                            .lateArrivals(lateArrivals)
+                            .lateComersRate(Math.ceil(latePercentage))
+                            .totalWorkDays(totalWorkDays)
+                            .build();
+                }).collect(Collectors.toList());
+
+        LateComersReport report = userReports.getFirst();
 
         return report;
     }

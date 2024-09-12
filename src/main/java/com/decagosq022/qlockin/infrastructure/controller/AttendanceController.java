@@ -83,11 +83,11 @@ public class AttendanceController {
     }
 
     @GetMapping("/latecomer")
-    public ResponseEntity<?> lateComer(){
+    public ResponseEntity<?> lateComer(@RequestParam int year, @RequestParam int month){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-
-        return ResponseEntity.ok("response "+currentUsername+" latecomer info");
+        List<LateComersReport> report = attendanceService.generalLateComersReport(currentUsername, year, month);
+        return ResponseEntity.ok(report);
     }
 
 
