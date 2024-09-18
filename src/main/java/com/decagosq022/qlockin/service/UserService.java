@@ -41,4 +41,6 @@ public interface UserService {
 
     List<AllEmployeeProfileResponse> getAllEmployeeProfiles();
 
+    String promoteUserToAdmin(Long userId);
+
 }

@@ -47,4 +47,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleNotActiveExceptions(NotActiveExceptions e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
     }
+
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<Object> handleNotActiveExceptions(UnauthorizedException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
 }
