@@ -25,4 +25,8 @@ public interface AttendanceService {
 
     List<LateComersReport> generalLateComersReport (String email, int year, int month );
 
+    AttendanceSummaryResponse getAttendanceSummary(String email);
+
+    List<AttendanceReportDto> getAttendanceForToday(String email, LocalDate date);
+
 }

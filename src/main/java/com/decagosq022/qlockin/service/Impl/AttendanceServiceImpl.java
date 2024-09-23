@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.NotActiveException;
 import java.time.*;
+import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,7 +30,7 @@ public class AttendanceServiceImpl implements AttendanceService {
     @Override
     public AttendanceResponse clockIn(String email, String employeeId) throws NotActiveException {
 
-        //User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
+
          User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
         if(user == null) {
@@ -73,7 +74,7 @@ public class AttendanceServiceImpl implements AttendanceService {
 
     @Override
     public AttendanceResponse clockOut(String email, String employeeId) {
-        //User user = userRepository.findByEmailAndEmployeeId(email,employeeId);
+
          User user = userRepository.findByEmployeeId(employeeId).orElse(null);
 
         if(user == null) {
@@ -160,8 +161,8 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return users.stream().map(user -> {
             List<Attendance> userAttendances = userAttendanceMap.getOrDefault(user.getId(), List.of());
-            int totalWorkDays = endOfMonth.getDayOfMonth();
-            int absentDays = totalWorkDays - userAttendances.size();
+            long totalWorkDays = calculateTotalWorkdays(year, month);
+            long absentDays = totalWorkDays - userAttendances.size();
 
             double absenteeismRate = (double) absentDays / totalWorkDays * 100;
 
@@ -180,37 +181,48 @@ public class AttendanceServiceImpl implements AttendanceService {
     public List<AttendanceReportDto> getAttendanceReport(String email, LocalDate date) {
         userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
+        List<User> employees = userRepository.findAll();
+
         List<Attendance> attendances = attendanceRepository.findAllByDate(date);
 
-        return attendances.stream().map(attendance -> {
+        // Create a map of users and their attendance for easier lookup
+        Map<User, Attendance> attendanceMap = attendances.stream()
+                .collect(Collectors.toMap(Attendance::getCreatedByUser, attendance -> attendance));
+
+        // For each employee, create an attendance report
+        return employees.stream().map(employee -> {
+            Attendance attendance = attendanceMap.get(employee);
+
             String status;
-            LocalDateTime qlockIn = attendance.getQlockIn();
-            LocalDateTime qlockOut = attendance.getQlockOut();
+            LocalDateTime qlockIn = null;
+            LocalDateTime qlockOut = null;
             long totalHours = 0;
 
-            if (qlockIn == null) {
+            if (attendance == null || attendance.getQlockIn() == null) {
+                // If no attendance record or no clock-in time, mark as Absent
                 status = "Absent";
             } else {
+                qlockIn = attendance.getQlockIn();
+                qlockOut = attendance.getQlockOut();
+
+                // Calculate total hours worked if both clock-in and clock-out are available
                 totalHours = Duration.between(qlockIn, qlockOut != null ? qlockOut : LocalDateTime.now()).toHours();
 
+                // Determine status based on the clock-in time (before 8 AM is "Early", after 8 AM is "Late")
                 status = qlockIn.toLocalTime().isBefore(LocalTime.of(8, 0)) ? "Early" : "Late";
             }
 
-            // No return keyword, directly creating the AttendanceReportDto object
+            // Return the DTO with attendance details
             return new AttendanceReportDto(
-                    attendance.getCreatedByUser().getEmployeeId(),
-                    attendance.getCreatedByUser().getFullName(),
+                    employee.getEmployeeId(),
+                    employee.getFullName(),
                     qlockIn,
                     qlockOut,
                     totalHours,
                     status
             );
         }).collect(Collectors.toList());
-
-
-
     }
-
 
     @Override
     public AttendanceOvertimeDto getOvertimeReport(String email) {
@@ -332,6 +344,88 @@ public class AttendanceServiceImpl implements AttendanceService {
         return reports;
     }
 
+    @Override
+    public AttendanceSummaryResponse getAttendanceSummary(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<Attendance> attendances = attendanceRepository.findByCreatedByUser(user);
+
+        // Calculate the counts
+        Long totalDaysAtWork = (long) attendances.size();
+
+        Long earlyArrivals = attendances.stream()
+                .filter(a -> a.getQlockIn() != null && a.getQlockIn().isBefore(a.getDefault_Qlock_In()))
+                .count();
+
+        // Calculate late arrivals
+        Long lateArrivals = attendances.stream()
+                .filter(a -> a.getQlockIn() != null && a.getQlockIn().isAfter(a.getDefault_Qlock_In()))
+                .count();
+
+        // Calculate early departures
+        Long earlyDepartures = attendances.stream()
+                .filter(a -> a.getQlockOut() != null && a.getQlockOut().isBefore(a.getDefault_Qlock_Out()))
+                .count();
+
+        // Calculate absent employees
+        Long absentDays = attendances.stream()
+                .filter(a -> a.getQlockIn() == null)
+                .count();
+
+        return AttendanceSummaryResponse.builder()
+                .totalDaysAtWork(totalDaysAtWork)
+                .dayAbsent(absentDays)
+                .daysEarly(earlyArrivals)
+                .daysLate(lateArrivals)
+                .earlyDepartures(earlyDepartures)
+                .build();
+    }
+
+    @Override
+    public List<AttendanceReportDto> getAttendanceForToday(String email, LocalDate date) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<User> employees = userRepository.findAll();
+
+        List<Attendance> attendances = attendanceRepository.findAllByDate(date);
+
+        // Create a map of users and their attendance for easier lookup
+        Map<User, Attendance> attendanceMap = attendances.stream()
+                .collect(Collectors.toMap(Attendance::getCreatedByUser, attendance -> attendance));
+
+        // For each employee, create an attendance report
+        return employees.stream().map(employee -> {
+            Attendance attendance = attendanceMap.get(employee);
+
+            String status;
+            LocalDateTime qlockIn = null;
+            LocalDateTime qlockOut = null;
+            long totalHours = 0;
+
+            if (attendance == null || attendance.getQlockIn() == null) {
+                // If no attendance record or no clock-in time, mark as Absent
+                status = "Absent";
+            } else {
+                qlockIn = attendance.getQlockIn();
+                qlockOut = attendance.getQlockOut();
+
+                // Calculate total hours worked if both clock-in and clock-out are available
+                totalHours = Duration.between(qlockIn, qlockOut != null ? qlockOut : LocalDateTime.now()).toHours();
+
+                // Determine status based on the clock-in time (before 8 AM is "Early", after 8 AM is "Late")
+                status = qlockIn.toLocalTime().isBefore(LocalTime.of(8, 0)) ? "Early" : "Late";
+            }
+
+            // Return the DTO with attendance details
+            return new AttendanceReportDto(
+                    employee.getFullName(),
+                    qlockIn,
+                    qlockOut,
+                    totalHours,
+                    status
+            );
+        }).collect(Collectors.toList());
+    }
 
     private long calculateTotalWorkdays(int year, int month) {
         LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
