@@ -56,6 +56,7 @@ public class UserServiceImpl implements UserService {
     private final RoleRepository roleRepository;
     private final EmailService emailService;
     private final FileUploadService fileUploadService;
+    private final EmailUtil emailUtil;
 
 
     @Override
@@ -97,7 +98,7 @@ public class UserServiceImpl implements UserService {
 
         confirmationTokenRepository.save(confirmationToken);
 
-        String confirmationUrl = EmailUtil.getVerificationUrl(confirmationToken.getToken());
+        String confirmationUrl = emailUtil.getVerificationUrl(confirmationToken.getToken());
 
         EmailDetails emailDetails = EmailDetails.builder()
                 .fullName(savedUser.getFullName())
@@ -205,7 +206,7 @@ public class UserServiceImpl implements UserService {
         user.setResetTokenCreationTime(LocalDateTime.now());
         userRepository.save(user);
 
-        String resetUrl = "http://localhost:5173/reset-password?token=" + token;
+        String resetUrl = emailUtil.getResetUrl(token);
 
 //        // click this link to reset password;
         EmailDetails emailDetails = EmailDetails.builder()
@@ -363,7 +364,7 @@ public class UserServiceImpl implements UserService {
         User savedUser = userRepository.save(user);
 
         // Send a welcome email
-        String loginLink = EmailUtil.getLoginUrl();
+        String loginLink = emailUtil.getLoginUrl();
         String emailContent = EmailBody.addEmployeeEmailBody(savedUser.getFullName(), savedUser.getEmployeeId(), generatedPassword, loginLink);
         EmailDetails emailDetails = EmailDetails.builder()
                 .fullName(savedUser.getFullName())
