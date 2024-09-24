@@ -2,10 +2,8 @@ package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.entity.User;
 import com.decagosq022.qlockin.payload.request.EmployeeRegistrationRequest;
-import com.decagosq022.qlockin.payload.response.AllEmployeeProfileResponse;
-import com.decagosq022.qlockin.payload.response.EmployeeRegistrationResponse;
-import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
-import com.decagosq022.qlockin.payload.response.UploadResponse;
+import com.decagosq022.qlockin.payload.request.UpdateUserDetailsRequest;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.ReverseAuthService;
 import com.decagosq022.qlockin.service.UserService;
 import jakarta.mail.MessagingException;
@@ -101,10 +99,17 @@ public class UserController {
     }
 
     @GetMapping("/employee-details/{id}")
-    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        return ResponseEntity.ok("user details "+currentUsername+" "+id);
+    public ResponseEntity<UserDetailsResponse> getEmployeeDetails(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.userDetails(id));
+    }
+
+    @PutMapping(value = "/update-employee-details/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UpdateEmployeeDetailsResponse> updateUserDetails(@PathVariable Long id,
+            @ModelAttribute UpdateUserDetailsRequest request) {
+
+        UpdateEmployeeDetailsResponse response = userService.updateUserDetails(request, id);
+
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -41,4 +41,9 @@ public interface UserService {
 
     List<AllEmployeeProfileResponse> getAllEmployeeProfiles();
 
+    UpdateEmployeeDetailsResponse updateUserDetails (UpdateUserDetailsRequest request, Long id);
+
+    UserDetailsResponse userDetails (Long id);
+
+
 }

@@ -382,7 +382,7 @@ public class UserServiceImpl implements UserService {
         emailService.mimeMailMessage(emailDetails);
 
         return EmployeeRegistrationResponse.builder()
-                .responseCode("001")
+                .responseCode("200")
                 .responseMessage("Employee has been created successfully. Login details have been sent to their email.")
                 .build();
     }
@@ -415,10 +415,10 @@ public class UserServiceImpl implements UserService {
     public List<AllEmployeeProfileResponse> getAllEmployeeProfiles() {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
-        User currentUser = userRepository.findByEmail(email)
-                .orElseThrow(() -> new NotFoundException("User not found"));
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new NotFoundException("User is not authenticated");
+        }
 
         List<User> users = userRepository.findAll();
         return users.stream()
@@ -429,6 +429,66 @@ public class UserServiceImpl implements UserService {
                         .id(user.getId())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UpdateEmployeeDetailsResponse updateUserDetails(UpdateUserDetailsRequest request, Long id) {
+        String loggedInUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Fetch the user by email
+        User user = userRepository.findByEmail(loggedInUserEmail)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Update user details
+        user.setFullName(request.getFirstName() + " " + request.getLastName());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setDepartment(request.getDepartment());
+        user.setPosition(request.getJobTitle());
+        user.setShiftTime(request.getShiftTime());
+        user.setDateOfHire(request.getDateOfHire());
+        user.setDivision(request.getDivision());
+        user.setEmployeeStatus(request.getEmployeeStatus());
+
+        if (request.getProfilePicture() != null) {
+           try {
+               String uploadedFilePath = fileUploadService.uploadFile(request.getProfilePicture());
+               user.setProfilePicture(uploadedFilePath);
+           } catch (FileSizeLimitExceededException e) {
+               throw new InvalidInputException("Profile picture file size exceeds the allowable limit.");
+           } catch (IOException e) {
+               throw new InvalidInputException("An error occurred while uploading the profile picture. Please try again.");
+           }
+        }
+
+        userRepository.save(user);
+
+        return UpdateEmployeeDetailsResponse.builder()
+                .responseCode("001")
+                .responseMessage("Employee details has been updated successfully")
+                .build();
+    }
+
+    @Override
+    public UserDetailsResponse userDetails(Long id) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new NotFoundException("User is not authenticated");
+        }
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return UserDetailsResponse.builder()
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .department(user.getDepartment())
+                .jobTitle(user.getPosition())
+                .email(user.getEmail())
+                .division(user.getDivision())
+                .profilePicture(user.getProfilePicture())
+                .build();
+
     }
 
 
