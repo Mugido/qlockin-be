@@ -31,7 +31,7 @@ public interface UserService {
 
     ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email);
 
-    EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) throws IOException;
+    EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest, String email) throws IOException;
 
     String deleteEmployee (Long userId);
 
@@ -39,6 +39,6 @@ public interface UserService {
 
     boolean deleteUserById(Long id);
 
-    List<AllEmployeeProfileResponse> getAllEmployeeProfiles();
+    List<AllEmployeeProfileResponse> getAllEmployeeProfiles(String email);
 
 }

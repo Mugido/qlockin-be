@@ -158,11 +158,16 @@ public class UserServiceImpl implements UserService {
         revokeAllUserTokens(person);
         saveUserToken(person, jwtToken);
 
+        boolean isAdmin = person.getRoles()
+                .stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN));
+
+
         return LoginResponse.builder()
                 .responseCode("002")
                 .responseMessage("Your have been logged in successfully")
                 .loginInfo(LoginInfo.builder()
-                        .email(person.getEmail())
+                        .isAdmin(isAdmin)
                         .token(jwtToken)
                         .build())
                 .build();
@@ -174,15 +179,6 @@ public class UserServiceImpl implements UserService {
         if(user == null){
             throw new NotFoundException("User Not Found");
         }
-        Set<Role> roles = user.getRoles();
-        List<String> roleNames = roles.stream()
-                .map(role -> role.getRoleName().name())
-                .toList();
-
-        StringBuilder roleStr = new StringBuilder();
-        for(String roleNameStr : roleNames){
-            roleStr.append(roleNameStr);
-        }
 
         return UserDetailsResponseDto.builder()
                 .fullName(user.getFullName())
@@ -190,7 +186,6 @@ public class UserServiceImpl implements UserService {
                 .employeeId(user.getEmployeeId())
                 .gender(user.getGender())
                 .phoneNumber(user.getPhoneNumber())
-                .roleName(roleStr.toString())
                 .position(user.getPosition())
                 .profilePicture(user.getProfilePicture())
                 .build();
@@ -297,13 +292,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest) throws IOException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User authenticatedUser = userRepository.findByEmail(authentication.getName())
+    public EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest, String email) throws IOException {
+
+        User authenticatedUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
 
         boolean isUser = authenticatedUser.getRoles().stream()
-                .anyMatch(role -> role.getRoleName().equals(RoleName.USER));
+                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN));
 
         if (!isUser) {
             throw new SecurityException("Only users with the USER role can add new employees.");
@@ -412,10 +407,9 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<AllEmployeeProfileResponse> getAllEmployeeProfiles() {
+    public List<AllEmployeeProfileResponse> getAllEmployeeProfiles(String email) {
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+
 
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));

@@ -4,7 +4,9 @@ import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.AttendanceService;
 import com.decagosq022.qlockin.service.ReverseAuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cglib.core.Local;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +55,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/stats")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> getAllAttendanceData(@RequestParam LocalDate date) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -60,6 +63,7 @@ public class AttendanceController {
         return ResponseEntity.ok(stats);
     }
     @GetMapping("/absenteeism")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AbsenteeismReportResponseDto>> getMonthlyAbsenteeismReport(
             @RequestParam int year, @RequestParam int month){
         List<AbsenteeismReportResponseDto> report = attendanceService.getMonthlyAbsenteeismReport(year, month);
@@ -75,6 +79,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/overtime")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AttendanceOvertimeDto> getOvertimeData(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -83,6 +88,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/latecomer")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> lateComer(@RequestParam int year, @RequestParam int month){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
@@ -92,10 +98,29 @@ public class AttendanceController {
 
 
     @GetMapping("/overtime-report")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AttendanceOvertimeDto>> getOvertimeReport(){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         List<AttendanceOvertimeDto> response = attendanceService.getGeneralOverTimeReport(currentUsername);
         return ResponseEntity.ok(response);
+    }
+
+
+    @GetMapping("/user-summary")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<AttendanceSummaryResponse> getUserSummary(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        AttendanceSummaryResponse response = attendanceService.getAttendanceSummary(currentUsername);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("today-clockIn")
+    public ResponseEntity<?> getTodaysQlockIn(@RequestParam LocalDate date) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AttendanceReportDto> report = attendanceService.getAttendanceReport(currentUsername, date);
+        return ResponseEntity.ok(report);
     }
 }

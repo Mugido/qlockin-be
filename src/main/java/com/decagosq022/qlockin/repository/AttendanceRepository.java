@@ -26,4 +26,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
 
     @Query("SELECT a FROM Attendance a WHERE a.createdByUser.id = :userId AND YEAR(a.date) = :year AND MONTH(a.date) = :month")
     List<Attendance> findByCreatedByUserAndYearAndMonth(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
+
+    List<Attendance> findByCreatedByUser(User user);
+
+    Optional<Attendance> findByCreatedByUserAndDate(User employee, LocalDate today);
 }

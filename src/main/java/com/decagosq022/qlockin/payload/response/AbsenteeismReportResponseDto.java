@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class AbsenteeismReportResponseDto {
     private String userId;
     private String fullName;
-    private int absentDays;
-    private int totalWorkDays;
+    private Long absentDays;
+    private Long totalWorkDays;
     private double absenteeismRate;
 }
