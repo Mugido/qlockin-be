@@ -20,6 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findByEmailAndEmployeeId(String email, String employeeId);
 
-
     Long countByIsActiveTrue();
+
+
 }

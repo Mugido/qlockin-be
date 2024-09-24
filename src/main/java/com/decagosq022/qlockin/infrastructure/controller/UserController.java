@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,15 @@ public class UserController {
 
 
     @GetMapping("/")
+    @PreAuthorize(" hasRole('USER')")
     public ResponseEntity<?> getUserByEmail() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        return ResponseEntity.ok(userService.getUserByEmail(currentUsername));
+    }
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getAdminByEmail() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
         return ResponseEntity.ok(userService.getUserByEmail(currentUsername));
@@ -55,20 +64,24 @@ public class UserController {
     }
 
     @PostMapping(value = "/add-employee", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<EmployeeRegistrationResponse> addEmployee(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> addEmployee(
             @ModelAttribute EmployeeRegistrationRequest registrationRequest) throws IOException {
-
-        EmployeeRegistrationResponse response = userService.addEmployee(registrationRequest);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        EmployeeRegistrationResponse response = userService.addEmployee(registrationRequest, email);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete-employee")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteEmployee(@RequestParam Long userId) {
         String response = userService.deleteEmployee(userId);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}/activate")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> activateUser(@PathVariable Long id) {
         String result = userService.activateUser(id);
 
@@ -82,6 +95,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteUserById(@PathVariable Long id) {
         boolean isRemoved = userService.deleteUserById(id);
         if (isRemoved) {
@@ -92,14 +106,18 @@ public class UserController {
     }
 
     @GetMapping("/all-employees")
-//    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @PreAuthorize("hasRole('ADMIN') ")
     public ResponseEntity<List<AllEmployeeProfileResponse>> getAllEmployeeProfiles() {
-        List<AllEmployeeProfileResponse> profiles = userService.getAllEmployeeProfiles();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        List<AllEmployeeProfileResponse> profiles = userService.getAllEmployeeProfiles(email);
         return ResponseEntity.ok(profiles);
     }
 
     @GetMapping("/employee-details/{id}")
-    public ResponseEntity<UserDetailsResponse> getEmployeeDetails(@PathVariable Long id) {
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id) {
+
         return ResponseEntity.ok(userService.userDetails(id));
     }
 

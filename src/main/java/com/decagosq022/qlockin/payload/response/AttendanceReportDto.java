@@ -22,4 +22,7 @@ public class AttendanceReportDto {
     private Long totalHours;
 
     private String status;
+
+    public AttendanceReportDto(String fullName, Object o, Object o1, long i, String absent) {
+    }
 }

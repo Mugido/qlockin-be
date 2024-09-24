@@ -51,7 +51,7 @@ public class SecurityConfig {
                                         antMatcher(HttpMethod.GET, "/api/auth/confirm")
                                 )
                                 .permitAll()
-                                .requestMatchers("/api/v1/users/**").hasAuthority("ROLE_USER")
+//                                .requestMatchers("/api/v1/users/**").hasAuthority("ROLE_USER")
                                 .anyRequest()
                                 .authenticated()
 

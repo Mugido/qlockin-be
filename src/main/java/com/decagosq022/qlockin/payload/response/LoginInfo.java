@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class LoginInfo {
-    private String email;
+    private  boolean isAdmin;
     private String token;
 }
