@@ -88,11 +88,7 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-password")
-    public ResponseEntity<ChangePasswordResponse> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
-        ChangePasswordResponse response = userService.changePassword(changePasswordRequest);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
+
 
     @GetMapping("/verify-token")
     public ResponseEntity<?> verifyToken() {

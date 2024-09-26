@@ -33,7 +33,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.security.SecureRandom;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -256,11 +255,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest) {
+    public ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest, String email) {
 
-        // Get the authenticated user
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -377,16 +373,14 @@ public class UserServiceImpl implements UserService {
         emailService.mimeMailMessage(emailDetails);
 
         return EmployeeRegistrationResponse.builder()
-                .responseCode("001")
+                .responseCode("200")
                 .responseMessage("Employee has been created successfully. Login details have been sent to their email.")
                 .build();
     }
 
 
     @Override
-    public String deleteEmployee(Long userId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String email = authentication.getName();
+    public String deleteEmployee(Long userId, String email) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
@@ -409,10 +403,10 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<AllEmployeeProfileResponse> getAllEmployeeProfiles(String email) {
 
-
-
-        User currentUser = userRepository.findByEmail(email)
+        userRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException("User not found"));
+
+
 
         List<User> users = userRepository.findAll();
         return users.stream()
@@ -423,6 +417,88 @@ public class UserServiceImpl implements UserService {
                         .id(user.getId())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public UpdateEmployeeDetailsResponse updateUserDetails(String email, UpdateUserDetailsRequest request) {
+
+
+        // Fetch the user by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Update user details
+        user.setFullName(request.getFirstName() + " " + request.getLastName());
+        user.setDateOfBirth(request.getDateOfBirth());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setDepartment(request.getDepartment());
+        user.setPosition(request.getJobTitle());
+        user.setShiftTime(request.getShiftTime());
+        user.setDateOfHire(request.getDateOfHire());
+        user.setDivision(request.getDivision());
+        user.setEmployeeStatus(request.getEmployeeStatus());
+
+        if (request.getProfilePicture() != null && !request.getProfilePicture().isEmpty()) {
+           try {
+               String uploadedFilePath = fileUploadService.uploadFile(request.getProfilePicture());
+               user.setProfilePicture(uploadedFilePath);
+           } catch (FileSizeLimitExceededException e) {
+               throw new InvalidInputException("Profile picture file size exceeds the allowable limit.");
+           } catch (IOException e) {
+               throw new InvalidInputException("An error occurred while uploading the profile picture. Please try again.");
+           }
+        }
+
+        userRepository.save(user);
+
+        return UpdateEmployeeDetailsResponse.builder()
+                .responseCode("001")
+                .responseMessage("Employee details has been updated successfully")
+                .build();
+    }
+
+    @Override
+    public UserDetailsResponse userDetails(String email, Long id) {
+
+
+
+        // get two users by email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // user this as a flag to check if the user is an admin
+        User currentUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        // check that the user is admin or not
+        boolean isAdmin = currentUser.getRoles()
+                .stream()
+                .anyMatch(role -> role.getRoleName().equals(RoleName.ADMIN));
+       // if the user is an admin you can then search by id else search by the current logged in user
+
+        if(isAdmin && id != 0){
+
+             user = userRepository.findById(id)
+                    .orElseThrow(() -> new NotFoundException("User not found"));
+        }
+
+        String[] fullNameArr = user.getFullName().split(" ");
+
+        return UserDetailsResponse.builder()
+                .firstName(fullNameArr[0])
+                .lastName(fullNameArr.length > 1 ? fullNameArr[1] : null )
+                .phoneNumber(user.getPhoneNumber())
+                .department(user.getDepartment())
+                .jobTitle(user.getPosition())
+                .email(user.getEmail())
+                .division(user.getDivision())
+                .profilePicture(user.getProfilePicture())
+                .dateOfBirth(user.getDateOfBirth())
+                .dateOfHire(user.getDateOfHire())
+                .shiftTime(user.getShiftTime())
+                .employeeStatus(user.getEmployeeStatus())
+                .employeeId(user.getEmployeeId())
+                .build();
+
     }
 
 

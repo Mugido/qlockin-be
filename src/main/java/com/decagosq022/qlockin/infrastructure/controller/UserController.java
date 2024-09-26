@@ -1,11 +1,10 @@
 package com.decagosq022.qlockin.infrastructure.controller;
 
 import com.decagosq022.qlockin.entity.User;
+import com.decagosq022.qlockin.payload.request.ChangePasswordRequest;
 import com.decagosq022.qlockin.payload.request.EmployeeRegistrationRequest;
-import com.decagosq022.qlockin.payload.response.AllEmployeeProfileResponse;
-import com.decagosq022.qlockin.payload.response.EmployeeRegistrationResponse;
-import com.decagosq022.qlockin.payload.response.UserRegisterResponse;
-import com.decagosq022.qlockin.payload.response.UploadResponse;
+import com.decagosq022.qlockin.payload.request.UpdateUserDetailsRequest;
+import com.decagosq022.qlockin.payload.response.*;
 import com.decagosq022.qlockin.service.ReverseAuthService;
 import com.decagosq022.qlockin.service.UserService;
 import jakarta.mail.MessagingException;
@@ -65,6 +64,16 @@ public class UserController {
         return userService.uploadProfilePics(profilePic, currentUser);
     }
 
+    @PostMapping("/change-password")
+    public ResponseEntity<ChangePasswordResponse> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        ChangePasswordResponse response = userService.changePassword(changePasswordRequest, email);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @PostMapping(value = "/add-employee", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> addEmployee(
@@ -78,7 +87,10 @@ public class UserController {
     @DeleteMapping("/delete-employee")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> deleteEmployee(@RequestParam Long userId) {
-        String response = userService.deleteEmployee(userId);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        String response = userService.deleteEmployee(userId, email);
         return ResponseEntity.ok(response);
     }
 
@@ -118,10 +130,27 @@ public class UserController {
 
     @GetMapping("/employee-details/{id}")
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id) {
+    public ResponseEntity<?> getEmployeeDetails(@PathVariable Long id ) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String currentUsername = authentication.getName();
-        return ResponseEntity.ok("user details "+currentUsername+" "+id);
+        String email = authentication.getName();
+
+        return ResponseEntity.ok(userService.userDetails(email, id));
     }
+
+    @PutMapping(value = "/update-employee-details", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateUserDetails(
+            @ModelAttribute UpdateUserDetailsRequest request) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        UpdateEmployeeDetailsResponse response = userService.updateUserDetails(email, request);
+
+        return ResponseEntity.ok(response);
+    }
+
+
+
 
 }
