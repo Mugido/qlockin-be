@@ -27,13 +27,13 @@ public interface UserService {
 
     String resetPassword(ResetPasswordDto requestDto);
 
-    ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest);
+    ChangePasswordResponse changePassword(ChangePasswordRequest changePasswordRequest, String email);
 
     ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email);
 
     EmployeeRegistrationResponse addEmployee(EmployeeRegistrationRequest registerRequest, String email) throws IOException;
 
-    String deleteEmployee (Long userId);
+    String deleteEmployee (Long userId, String email);
 
     String activateUser(Long userId);
 
@@ -41,9 +41,9 @@ public interface UserService {
 
     List<AllEmployeeProfileResponse> getAllEmployeeProfiles(String email);
 
-    UpdateEmployeeDetailsResponse updateUserDetails (UpdateUserDetailsRequest request, Long id);
+    UpdateEmployeeDetailsResponse updateUserDetails (String email, UpdateUserDetailsRequest request);
 
-    UserDetailsResponse userDetails (Long id);
+    UserDetailsResponse userDetails (String email, Long id);
 
 
 }

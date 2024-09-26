@@ -5,13 +5,17 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 public class UserDetailsResponse {
 
-    private String fullName;
+    private String firstName;
+
+    private String lastName;
 
     private String phoneNumber;
 
@@ -24,4 +28,14 @@ public class UserDetailsResponse {
     private String division;
 
     private String profilePicture;
+
+    private String employeeId;
+
+    private LocalDate dateOfHire;
+
+    private LocalDate dateOfBirth;
+
+    private String shiftTime;
+
+    private String employeeStatus;
 }
