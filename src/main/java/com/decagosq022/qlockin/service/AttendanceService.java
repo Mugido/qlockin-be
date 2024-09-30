@@ -29,4 +29,21 @@ public interface AttendanceService {
 
     List<AttendanceReportDto> getAttendanceForToday(String email, LocalDate date);
 
+    List<AttendanceHistoryDto> getUserAttendance(String email, int year, int month);
+
+    List<AbsenteeismReportDto> getUserAbsenteeismReport(String email, int year);
+
+    List<LateComersReportDto> getUserLateComersReport(String email, int year);
+
+    List<OvertimeReportDto> getUserOvertimeReport(String email, int year, int month);
+
+    List<AttendanceHistoryDto> getUserAttendanceById(Long userId, int year, int month);
+
+    List<AbsenteeismReportDto> getUserAbsenteeismById(Long userId, int year);
+
+    List<LateComersReportDto> getUserLateComersReportById(Long userId, int year);
+
+    List<OvertimeReportDto> getUserOvertimeReportById(Long userId, int year, int month);
+
+
 }
