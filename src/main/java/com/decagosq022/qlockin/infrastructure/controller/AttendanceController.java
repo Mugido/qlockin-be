@@ -99,10 +99,10 @@ public class AttendanceController {
 
     @GetMapping("/overtime-report")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AttendanceOvertimeDto>> getOvertimeReport(){
+    public ResponseEntity<List<AttendanceOvertimeDto>> getOvertimeReport(@RequestParam LocalDate weekStart, @RequestParam LocalDate weekEnd){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        List<AttendanceOvertimeDto> response = attendanceService.getGeneralOverTimeReport(currentUsername);
+        List<AttendanceOvertimeDto> response = attendanceService.getGeneralOverTimeReport(currentUsername, weekStart, weekEnd);
         return ResponseEntity.ok(response);
     }
 

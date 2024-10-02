@@ -262,17 +262,18 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return report;
     }
-    @Override
-    public List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<Attendance> attendanceList = attendanceRepository.findAll();
+    @Override
+    public List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email, LocalDate weekStart, LocalDate weekEnd) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<User> users = userRepository.findAll();
 
         List<AttendanceOvertimeDto> generalList = new ArrayList<>();
 
-        for(Attendance attendance : attendanceList){
+        for(User user : users){
 
-            AttendanceOvertimeDto singletOvertime = getSingleOvertime(attendance.getCreatedByUser());
+            AttendanceOvertimeDto singletOvertime = getSingleOvertime(user, weekStart, weekEnd);
 
             generalList.add(singletOvertime);
 
@@ -280,7 +281,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         return generalList;
-
 
     }
 
@@ -321,21 +321,53 @@ public class AttendanceServiceImpl implements AttendanceService {
         return report;
     }
 
+    private AttendanceOvertimeDto getSingleOvertime(User user, LocalDate weekStart, LocalDate weekEnd) {
+        // Find attendance between the provided start and end dates
+        List<Attendance> attendanceList = attendanceRepository.findByCreatedByUserAndDateBetween(user, weekStart, weekEnd);
+
+        Duration totalRegularHours = Duration.ZERO;
+        Duration totalOvertimeHours = Duration.ZERO;
+
+        for (Attendance attendance : attendanceList) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                Duration workedHours = Duration.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+                // Assuming 8 hours as the regular workday
+                Duration regularHours = Duration.ofHours(8);
+
+                if (workedHours.compareTo(regularHours) > 0) {
+                    totalRegularHours = totalRegularHours.plus(regularHours);
+                    totalOvertimeHours = totalOvertimeHours.plus(workedHours.minus(regularHours));
+                } else {
+                    totalRegularHours = totalRegularHours.plus(workedHours);
+                }
+            }
+        }
+
+        // Create and return the overtime report DTO
+        AttendanceOvertimeDto report = AttendanceOvertimeDto.builder()
+                .fullName(user.getFullName())
+                .employeeId(user.getEmployeeId())
+                .regularHours(totalRegularHours)
+                .overtimeHours(totalOvertimeHours)
+                .totalHours(totalRegularHours.plus(totalOvertimeHours))
+                .build();
+
+        return report;
+    }
+
 
     @Override
     public List<LateComersReport> generalLateComersReport(String email, int year, int month) {
+
         userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<Attendance> attendances = attendanceRepository.findAll();
+        List<User> users = userRepository.findAll();
 
         List<LateComersReport> reports = new ArrayList<>();
 
-        HashSet<User> user = new HashSet<>();
-        for(Attendance attendance : attendances) {
-            user.add(attendance.getCreatedByUser());
-        }
 
-        for(User user1 : user) {
+        for(User user1 : users) {
             LateComersReport report = getLateComersReport(user1,year, month);
 
             reports.add(report);
@@ -760,6 +792,8 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         List<Attendance> attendances = attendanceRepository.findByCreatedByUserAndYearAndMonth(user.getId(), year, month);
 
+
+
         long totalWorkDays = calculateTotalWorkdays(year, month);
 
         Map<User, List<Attendance>> attendanceByUser = attendances.stream()
@@ -785,7 +819,18 @@ public class AttendanceServiceImpl implements AttendanceService {
                             .build();
                 }).collect(Collectors.toList());
 
-        LateComersReport report = userReports.getFirst();
+        LateComersReport report;
+        if(userReports.size() >= 1){
+           report = userReports.getFirst();
+        }else{
+            report = LateComersReport.builder()
+                    .employeeId(user.getEmployeeId())
+                    .fullName(user.getFullName())
+                    .lateArrivals(null)
+                    .lateComersRate(null)
+                    .totalWorkDays(totalWorkDays)
+                    .build();
+        }
 
         return report;
     }

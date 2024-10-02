@@ -21,7 +21,7 @@ public interface AttendanceService {
 
     AttendanceOvertimeDto getOvertimeReport(String email);
 
-    List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email);
+    List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email, LocalDate weekStart, LocalDate weekEnd);
 
     List<LateComersReport> generalLateComersReport (String email, int year, int month );
 
