@@ -99,10 +99,10 @@ public class AttendanceController {
 
     @GetMapping("/overtime-report")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AttendanceOvertimeDto>> getOvertimeReport(){
+    public ResponseEntity<List<AttendanceOvertimeDto>> getOvertimeReport(@RequestParam LocalDate weekStart, @RequestParam LocalDate weekEnd){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-        List<AttendanceOvertimeDto> response = attendanceService.getGeneralOverTimeReport(currentUsername);
+        List<AttendanceOvertimeDto> response = attendanceService.getGeneralOverTimeReport(currentUsername, weekStart, weekEnd);
         return ResponseEntity.ok(response);
     }
 
@@ -122,5 +122,68 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
         List<AttendanceReportDto> report = attendanceService.getAttendanceReport(currentUsername, date);
         return ResponseEntity.ok(report);
+    }
+    @GetMapping("user-attendance")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getUserAttendance(@RequestParam int year, @RequestParam int month) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AttendanceHistoryDto> response = attendanceService.getUserAttendance(currentUsername, year, month);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("user-absent")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getUserAbsent(@RequestParam int year) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<AbsenteeismReportDto> response = attendanceService.getUserAbsenteeismReport(currentUsername,year);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("user-latecomer")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getUserLatecomer(@RequestParam int year) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<LateComersReportDto> response = attendanceService.getUserLateComersReport(currentUsername,year);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("user-overtime")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<?> getUserOvertime(@RequestParam int year, @RequestParam int month) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<OvertimeReportDto> response = attendanceService.getUserOvertimeReport(currentUsername, year, month);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("user-attendances")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserAttendanceById(@RequestParam int year, @RequestParam int month, @RequestParam Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        List<AttendanceHistoryDto> response = attendanceService.getUserAttendanceById(id, year, month);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("user-absenteeism")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserAbsentById(@RequestParam int year, @RequestParam Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        List<AbsenteeismReportDto> response = attendanceService.getUserAbsenteeismById(id,year);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("user-latecomers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserLatecomerById(@RequestParam int year, @RequestParam Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        List<LateComersReportDto> response = attendanceService.getUserLateComersReportById(id,year);
+        return ResponseEntity.ok(response);
+    }
+    @GetMapping("user-overtimes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getUserOvertimeById(@RequestParam int year, @RequestParam int month, @RequestParam Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        List<OvertimeReportDto> response = attendanceService.getUserOvertimeReportById(id, year, month);
+        return ResponseEntity.ok(response);
     }
 }

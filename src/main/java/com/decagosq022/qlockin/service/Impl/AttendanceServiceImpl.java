@@ -262,17 +262,18 @@ public class AttendanceServiceImpl implements AttendanceService {
 
         return report;
     }
-    @Override
-    public List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<Attendance> attendanceList = attendanceRepository.findAll();
+    @Override
+    public List<AttendanceOvertimeDto> getGeneralOverTimeReport(String email, LocalDate weekStart, LocalDate weekEnd) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<User> users = userRepository.findAll();
 
         List<AttendanceOvertimeDto> generalList = new ArrayList<>();
 
-        for(Attendance attendance : attendanceList){
+        for(User user : users){
 
-            AttendanceOvertimeDto singletOvertime = getSingleOvertime(attendance.getCreatedByUser());
+            AttendanceOvertimeDto singletOvertime = getSingleOvertime(user, weekStart, weekEnd);
 
             generalList.add(singletOvertime);
 
@@ -280,7 +281,6 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         return generalList;
-
 
     }
 
@@ -321,21 +321,53 @@ public class AttendanceServiceImpl implements AttendanceService {
         return report;
     }
 
+    private AttendanceOvertimeDto getSingleOvertime(User user, LocalDate weekStart, LocalDate weekEnd) {
+        // Find attendance between the provided start and end dates
+        List<Attendance> attendanceList = attendanceRepository.findByCreatedByUserAndDateBetween(user, weekStart, weekEnd);
+
+        Duration totalRegularHours = Duration.ZERO;
+        Duration totalOvertimeHours = Duration.ZERO;
+
+        for (Attendance attendance : attendanceList) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                Duration workedHours = Duration.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+                // Assuming 8 hours as the regular workday
+                Duration regularHours = Duration.ofHours(8);
+
+                if (workedHours.compareTo(regularHours) > 0) {
+                    totalRegularHours = totalRegularHours.plus(regularHours);
+                    totalOvertimeHours = totalOvertimeHours.plus(workedHours.minus(regularHours));
+                } else {
+                    totalRegularHours = totalRegularHours.plus(workedHours);
+                }
+            }
+        }
+
+        // Create and return the overtime report DTO
+        AttendanceOvertimeDto report = AttendanceOvertimeDto.builder()
+                .fullName(user.getFullName())
+                .employeeId(user.getEmployeeId())
+                .regularHours(totalRegularHours)
+                .overtimeHours(totalOvertimeHours)
+                .totalHours(totalRegularHours.plus(totalOvertimeHours))
+                .build();
+
+        return report;
+    }
+
 
     @Override
     public List<LateComersReport> generalLateComersReport(String email, int year, int month) {
+
         userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
 
-        List<Attendance> attendances = attendanceRepository.findAll();
+        List<User> users = userRepository.findAll();
 
         List<LateComersReport> reports = new ArrayList<>();
 
-        HashSet<User> user = new HashSet<>();
-        for(Attendance attendance : attendances) {
-            user.add(attendance.getCreatedByUser());
-        }
 
-        for(User user1 : user) {
+        for(User user1 : users) {
             LateComersReport report = getLateComersReport(user1,year, month);
 
             reports.add(report);
@@ -427,6 +459,323 @@ public class AttendanceServiceImpl implements AttendanceService {
         }).collect(Collectors.toList());
     }
 
+    @Override
+    public List<AttendanceHistoryDto> getUserAttendance(String email, int year, int month) {
+        userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserEmailAndMonth(email, year, month);
+        List<AttendanceHistoryDto> attendanceHistoryDtos = new ArrayList<>();
+
+        for(Attendance attendance : attendances) {
+
+            if (attendance.getQlockIn() == null || attendance.getQlockOut() == null) {
+                continue; // Skip if either qlockIn or qlockOut is null
+            }
+            // Calculate total hours worked
+            long hoursWorked = ChronoUnit.HOURS.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+            // Determine status
+            LocalTime earlyTime = LocalTime.of(8, 0);
+            LocalTime clockInTime = attendance.getQlockIn().toLocalTime();
+            String status = clockInTime.isBefore(earlyTime) ? "Early" : "Late";
+
+            AttendanceHistoryDto attendanceHistoryDto = AttendanceHistoryDto.builder()
+                    .date(attendance.getDate())
+                    .qlockIn(attendance.getQlockIn())
+                    .qlockOut(attendance.getQlockOut())
+                    .totalHours(hoursWorked)
+                    .status(status)
+                    .build();
+
+            attendanceHistoryDtos.add(attendanceHistoryDto);
+        }
+        return attendanceHistoryDtos;
+
+    }
+
+    @Override
+    public List<AbsenteeismReportDto> getUserAbsenteeismReport(String email, int year) {
+        List<AbsenteeismReportDto> report = new ArrayList<>();
+
+        for (int month = 1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            long totalWorkDays = calculateTotalWorkdays(year, month);
+
+            List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserEmailAndMonth(email, year, month);
+            long attendedDays = attendances.size();
+            long absentDays = totalWorkDays - attendedDays;
+
+            // Calculate absenteeism rate (absent days / total workdays) * 100
+            double absenteeismRate = (double) absentDays / totalWorkDays * 100;
+
+            AbsenteeismReportDto absenteeismReportDto = AbsenteeismReportDto.builder()
+                    .month(yearMonth.getMonth().name())
+                    .absentDays(absentDays)
+                    .totalWorkDays(totalWorkDays)
+                    .absenteeismRate(absenteeismRate)
+                    .build();
+            report.add(absenteeismReportDto);
+        }
+        return report;
+    }
+
+    @Override
+    public List<LateComersReportDto> getUserLateComersReport(String email, int year) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+        List<LateComersReportDto> reportList = new ArrayList<>();
+        // Iterate over each month of the year
+        for (int month =1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            long totalWorkDays = calculateTotalWorkdays(year, month);
+
+            // Fetch attendance records for the user for the given month
+            List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserEmailAndMonth(email, year, month);
+
+            long lateDays = 0;
+
+            // Define the threshold for being late (e.g., 9:00 AM)
+            LocalTime lateThreshold = LocalTime.of(8, 0);
+
+            // Calculate late days
+            for (Attendance attendance : attendances) {
+                if (attendance.getQlockIn() != null && attendance.getQlockIn().toLocalTime().isAfter(lateThreshold)) {
+                    lateDays++;
+                }
+            }
+            // Calculate latecomer rate (late days / total workdays) * 100
+            double latecomerRate = (double) lateDays / totalWorkDays * 100;
+
+            // Build the report for the month
+            LateComersReportDto lateComersReportDto = LateComersReportDto.builder()
+                    .month(yearMonth.getMonth().name())
+                    .totalWorkDays(totalWorkDays)
+                    .lateArrivals(lateDays)
+                    .lateComerRate(latecomerRate)
+                    .build();
+            // Add the monthly report to the list
+            reportList.add(lateComersReportDto);
+
+        }
+        return reportList;
+    }
+
+    @Override
+    public List<OvertimeReportDto> getUserOvertimeReport(String email, int year, int month) {
+        List<OvertimeReportDto> report = new ArrayList<>();
+
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        // Fetch attendance records for the current user within the current month
+        List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserEmailAndDateBetween(email, startDate, endDate);
+
+        // Regular work hours (8:00 AM - 5:00 PM)
+        LocalTime regularStartTime = LocalTime.of(8, 0);
+        LocalTime regularEndTime = LocalTime.of(16, 0);
+        Duration regularWorkHours = Duration.between(regularStartTime, regularEndTime);
+        for( Attendance attendance : attendances) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                LocalTime clockIn = attendance.getQlockIn().toLocalTime();
+                LocalTime clockOut = attendance.getQlockOut().toLocalTime();
+
+                Duration workedHours = Duration.between(clockIn, clockOut);
+                Duration overtimeHours = Duration.ZERO;
+
+
+                if (clockOut.isAfter(regularEndTime)) {
+                    overtimeHours = Duration.between(regularEndTime, clockOut);
+                }
+
+                // Calculate total hours as regular work hours + overtime hours
+                Duration totalHours = regularWorkHours.plus(overtimeHours);
+
+                // Build the report for each day
+                OvertimeReportDto overtimeReportDto = OvertimeReportDto.builder()
+                        .date(attendance.getDate()) // Assuming Attendance entity has a 'date' field
+                        .regularHours(regularWorkHours)
+                        .overtimeHours(overtimeHours)
+                        .totalHours(totalHours)
+                        .build();
+
+                report.add(overtimeReportDto);
+            }
+        }
+
+        return report;
+    }
+
+    @Override
+    public List<AttendanceHistoryDto> getUserAttendanceById(Long userId, int year, int month) {
+        // Fetch user by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        // Fetch attendance records for the user in the specified year and month
+        List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserAndMonth(userId, year, month);
+        List<AttendanceHistoryDto> attendanceHistoryDtos = new ArrayList<>();
+
+        for (Attendance attendance : attendances) {
+
+            // Skip if either qlockIn or qlockOut is null
+            if (attendance.getQlockIn() == null || attendance.getQlockOut() == null) {
+                continue;
+            }
+
+            // Calculate total hours worked
+            long hoursWorked = ChronoUnit.HOURS.between(attendance.getQlockIn(), attendance.getQlockOut());
+
+            // Determine status (Early or Late)
+            LocalTime earlyTime = LocalTime.of(8, 0);
+            LocalTime clockInTime = attendance.getQlockIn().toLocalTime();
+            String status = clockInTime.isBefore(earlyTime) ? "Early" : "Late";
+
+            // Build the DTO for each attendance record
+            AttendanceHistoryDto attendanceHistoryDto = AttendanceHistoryDto.builder()
+                    .date(attendance.getDate())
+                    .qlockIn(attendance.getQlockIn())
+                    .qlockOut(attendance.getQlockOut())
+                    .totalHours(hoursWorked)
+                    .status(status)
+                    .build();
+
+            // Add to the list of attendance history DTOs
+            attendanceHistoryDtos.add(attendanceHistoryDto);
+        }
+
+        return attendanceHistoryDtos;
+    }
+
+    @Override
+    public List<AbsenteeismReportDto> getUserAbsenteeismById(Long userId, int year) {
+        // Fetch user by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<AbsenteeismReportDto> report = new ArrayList<>();
+
+        // Loop through each month of the year
+        for (int month = 1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+
+            // Calculate the total number of workdays for the current month
+            long totalWorkDays = calculateTotalWorkdays(year, month);
+
+            // Retrieve attendance records for the user for the specified month and year
+            List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserAndMonth(userId, year, month);
+            long attendedDays = attendances.size();
+            long absentDays = totalWorkDays - attendedDays;
+
+            // Calculate absenteeism rate (absent days / total workdays) * 100
+            double absenteeismRate = (double) absentDays / totalWorkDays * 100;
+
+            // Build the absenteeism report for the current month
+            AbsenteeismReportDto absenteeismReportDto = AbsenteeismReportDto.builder()
+                    .month(yearMonth.getMonth().name())
+                    .absentDays(absentDays)
+                    .totalWorkDays(totalWorkDays)
+                    .absenteeismRate(absenteeismRate)
+                    .build();
+
+            // Add the report to the list
+            report.add(absenteeismReportDto);
+        }
+
+        return report;
+    }
+
+    @Override
+    public List<LateComersReportDto> getUserLateComersReportById(Long userId, int year) {
+        // Fetch user by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        List<LateComersReportDto> reportList = new ArrayList<>();
+        // Iterate over each month of the year
+        for (int month =1; month <= 12; month++) {
+            YearMonth yearMonth = YearMonth.of(year, month);
+            long totalWorkDays = calculateTotalWorkdays(year, month);
+
+            // Fetch attendance records for the user for the given month
+            List<Attendance> attendances = attendanceRepository.findAttendanceByCreatedByUserAndMonth(userId, year, month);
+
+            long lateDays = 0;
+
+            // Define the threshold for being late (e.g., 9:00 AM)
+            LocalTime lateThreshold = LocalTime.of(8, 0);
+
+            // Calculate late days
+            for (Attendance attendance : attendances) {
+                if (attendance.getQlockIn() != null && attendance.getQlockIn().toLocalTime().isAfter(lateThreshold)) {
+                    lateDays++;
+                }
+            }
+            // Calculate latecomer rate (late days / total workdays) * 100
+            double latecomerRate = (double) lateDays / totalWorkDays * 100;
+
+            // Build the report for the month
+            LateComersReportDto lateComersReportDto = LateComersReportDto.builder()
+                    .month(yearMonth.getMonth().name())
+                    .totalWorkDays(totalWorkDays)
+                    .lateArrivals(lateDays)
+                    .lateComerRate(latecomerRate)
+                    .build();
+            // Add the monthly report to the list
+            reportList.add(lateComersReportDto);
+
+        }
+        return reportList;
+    }
+
+    @Override
+    public List<OvertimeReportDto> getUserOvertimeReportById(Long userId, int year, int month) {
+        // Fetch user by ID
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        List<OvertimeReportDto> report = new ArrayList<>();
+
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        // Fetch attendance records for the current user within the current month
+        List<Attendance> attendances = attendanceRepository.findByCreatedByUserAndDateBetween(user, startDate, endDate);
+
+        // Regular work hours (8:00 AM - 5:00 PM)
+        LocalTime regularStartTime = LocalTime.of(8, 0);
+        LocalTime regularEndTime = LocalTime.of(16, 0);
+        Duration regularWorkHours = Duration.between(regularStartTime, regularEndTime);
+        for( Attendance attendance : attendances) {
+            if (attendance.getQlockIn() != null && attendance.getQlockOut() != null) {
+                LocalTime clockIn = attendance.getQlockIn().toLocalTime();
+                LocalTime clockOut = attendance.getQlockOut().toLocalTime();
+
+                Duration workedHours = Duration.between(clockIn, clockOut);
+                Duration overtimeHours = Duration.ZERO;
+
+
+                if (clockOut.isAfter(regularEndTime)) {
+                    overtimeHours = Duration.between(regularEndTime, clockOut);
+                }
+
+                // Calculate total hours as regular work hours + overtime hours
+                Duration totalHours = regularWorkHours.plus(overtimeHours);
+
+                // Build the report for each day
+                OvertimeReportDto overtimeReportDto = OvertimeReportDto.builder()
+                        .date(attendance.getDate()) // Assuming Attendance entity has a 'date' field
+                        .regularHours(regularWorkHours)
+                        .overtimeHours(overtimeHours)
+                        .totalHours(totalHours)
+                        .build();
+
+                report.add(overtimeReportDto);
+            }
+        }
+
+        return report;
+    }
+
     private long calculateTotalWorkdays(int year, int month) {
         LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
         LocalDate lastDayOfMonth = firstDayOfMonth.with(TemporalAdjusters.lastDayOfMonth());
@@ -442,6 +791,8 @@ public class AttendanceServiceImpl implements AttendanceService {
 
 
         List<Attendance> attendances = attendanceRepository.findByCreatedByUserAndYearAndMonth(user.getId(), year, month);
+
+
 
         long totalWorkDays = calculateTotalWorkdays(year, month);
 
@@ -468,7 +819,18 @@ public class AttendanceServiceImpl implements AttendanceService {
                             .build();
                 }).collect(Collectors.toList());
 
-        LateComersReport report = userReports.getFirst();
+        LateComersReport report;
+        if(userReports.size() >= 1){
+           report = userReports.getFirst();
+        }else{
+            report = LateComersReport.builder()
+                    .employeeId(user.getEmployeeId())
+                    .fullName(user.getFullName())
+                    .lateArrivals(null)
+                    .lateComersRate(null)
+                    .totalWorkDays(totalWorkDays)
+                    .build();
+        }
 
         return report;
     }
