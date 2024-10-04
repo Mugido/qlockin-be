@@ -16,10 +16,7 @@ import java.io.NotActiveException;
 import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -774,6 +771,28 @@ public class AttendanceServiceImpl implements AttendanceService {
         }
 
         return report;
+    }
+
+    @Override
+    public Map<String, Object> getAttendanceForTheWeek(String email) {
+        userRepository.findByEmail(email).orElseThrow(()-> new NotFoundException("User not found"));
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today.with(DayOfWeek.MONDAY); // Get the Monday of the current week
+
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Integer> dailyAttendance = new HashMap<>();
+
+        for (int i =0; i <7; i++){
+            LocalDate day = monday.plusDays(i);
+            int attendanceCount = attendanceRepository.countAttendanceByDate(day);
+            dailyAttendance.put(day.getDayOfWeek().name(), attendanceCount); // Example: MONDAY, TUESDAY...
+        }
+        Long totalStaff = userRepository.count();
+
+        result.put("attendanceForTheWeek", dailyAttendance);
+        result.put("totalStaff", totalStaff);
+
+        return result;
     }
 
     private long calculateTotalWorkdays(int year, int month) {

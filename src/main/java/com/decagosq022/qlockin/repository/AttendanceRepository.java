@@ -43,4 +43,8 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     @Query("SELECT a FROM Attendance a WHERE a.createdByUser.id = :userId AND YEAR(a.date) = :year AND MONTH(a.date) = :month")
     List<Attendance> findAttendanceByCreatedByUserAndMonth(@Param("userId") Long userId, @Param("year") int year, @Param("month") int month);
 
+    @Query("SELECT COUNT(a) FROM Attendance a WHERE a.date = :date")
+    int countAttendanceByDate(LocalDate date);
+
+
 }
