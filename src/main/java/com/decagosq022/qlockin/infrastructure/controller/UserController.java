@@ -108,10 +108,14 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete-by-employeeId")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> deleteUserById(@PathVariable Long id) {
-        boolean isRemoved = userService.deleteUserById(id);
+    public ResponseEntity<String> deleteUserById(@RequestParam String employeeId) {
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        boolean isRemoved = userService.deleteUserById(email, employeeId);
         if (isRemoved) {
             return ResponseEntity.ok("User deleted successfully");
         } else {

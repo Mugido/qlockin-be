@@ -16,4 +16,5 @@ public class AbsenteeismReportResponseDto {
     private Long absentDays;
     private Long totalWorkDays;
     private double absenteeismRate;
+    private Long id;
 }

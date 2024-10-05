@@ -1,19 +1,13 @@
 package com.decagosq022.qlockin.service.Impl;
 
-import com.decagosq022.qlockin.entity.ConfirmationToken;
-import com.decagosq022.qlockin.entity.JToken;
-import com.decagosq022.qlockin.entity.Role;
-import com.decagosq022.qlockin.entity.User;
+import com.decagosq022.qlockin.entity.*;
 import com.decagosq022.qlockin.enums.RoleName;
 import com.decagosq022.qlockin.enums.TokenType;
 import com.decagosq022.qlockin.exceptions.*;
 import com.decagosq022.qlockin.infrastructure.config.JwtService;
 import com.decagosq022.qlockin.payload.request.*;
 import com.decagosq022.qlockin.payload.response.*;
-import com.decagosq022.qlockin.repository.ConfirmationTokenRepository;
-import com.decagosq022.qlockin.repository.JTokenRepository;
-import com.decagosq022.qlockin.repository.RoleRepository;
-import com.decagosq022.qlockin.repository.UserRepository;
+import com.decagosq022.qlockin.repository.*;
 import com.decagosq022.qlockin.service.EmailService;
 import com.decagosq022.qlockin.service.FileUploadService;
 import com.decagosq022.qlockin.service.UserService;
@@ -548,12 +542,20 @@ public class UserServiceImpl implements UserService {
         return "User activated successfully";
     }
 
-    public boolean deleteUserById(Long id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-            return true;
+    public boolean deleteUserById(String email, String employeeId) {
+
+
+        User admin = userRepository.findByEmail(email).orElse(null);
+
+        User user = userRepository.findByEmployeeId(employeeId).orElse(null);
+
+        if (admin== null || user == null || admin == user ) {
+            return false;
         }
-        return false;
+
+        userRepository.delete(user);
+
+        return true;
     }
 
 }

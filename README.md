@@ -67,7 +67,7 @@ Qlock-in aims to be the preferred choice for businesses looking to enhance their
 
 2. **Clock-in with Face-Id or Fingerprint Capture**:
     - Employees clock in using face-Id or fingerprint and their unique user EmployeeID.
-    - Steps include (Same for clock-out:
+    - Steps include (Same for clock-out):
       - ![clock-in with id](images/qlockinimage/qlockin.png)
       - ![clock-in with id 2](images/qlockinimage/qlockin2.png)
       - ![clock-in with id 3](images/qlockinimage/qlockin4.jpeg)
