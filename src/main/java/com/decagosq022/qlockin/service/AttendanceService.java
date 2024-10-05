@@ -7,6 +7,7 @@ import com.decagosq022.qlockin.payload.response.*;
 import java.io.NotActiveException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface AttendanceService {
     AttendanceResponse clockIn (String email, String employeeId) throws NotActiveExceptions, NotActiveException;
@@ -44,6 +45,8 @@ public interface AttendanceService {
     List<LateComersReportDto> getUserLateComersReportById(Long userId, int year);
 
     List<OvertimeReportDto> getUserOvertimeReportById(Long userId, int year, int month);
+
+    Map<String, Object> getAttendanceForTheWeek(String email);
 
 
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.NotActiveException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -185,5 +186,14 @@ public class AttendanceController {
         String currentUsername = authentication.getName();
         List<OvertimeReportDto> response = attendanceService.getUserOvertimeReportById(id, year, month);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("attendanceFortheWeek")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getWeeklyAttendance(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
+        Map<String, Object> summary = attendanceService.getAttendanceForTheWeek(currentUsername);
+        return ResponseEntity.ok(summary);
     }
 }
