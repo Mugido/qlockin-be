@@ -157,4 +157,11 @@ public class UserController {
 
 
 
+    @PostMapping("/promote-to-admin/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> promoteToAdmin(@PathVariable Long userId) {
+        String responseMessage = userService.promoteUserToAdmin(userId);
+        return ResponseEntity.ok(responseMessage);
+    }
+
 }

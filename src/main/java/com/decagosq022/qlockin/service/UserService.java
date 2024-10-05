@@ -46,4 +46,6 @@ public interface UserService {
     UserDetailsResponse userDetails (String email, Long id);
 
 
+    String promoteUserToAdmin(Long userId);
+
 }

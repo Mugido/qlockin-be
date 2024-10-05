@@ -495,6 +495,37 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    @Override
+    public String promoteUserToAdmin(Long userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        User loggedInUser = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Authenticated user not found"));
+
+        Role adminRole = roleRepository.findByRoleName(RoleName.ADMIN)
+                .orElseThrow(() -> new NotFoundException("Admin role not found"));
+
+        if (!loggedInUser.getRoles().contains(adminRole)) {
+            throw new UnauthorizedException("Only admins can promote users to admin.");
+        }
+
+        User userToPromote = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User to promote not found"));
+
+        // Check if the user already has the admin role
+        if (userToPromote.getRoles().contains(adminRole)) {
+            throw new AlreadyExistsException("User is already an admin.");
+        }
+
+        // Add the admin role to the user's roles and save the user
+        userToPromote.getRoles().add(adminRole);
+        userRepository.save(userToPromote);
+
+
+        return "User has been promoted to an admin successfully";
+    }
+
 
     @Override
     public ResponseEntity<UploadResponse> uploadProfilePics(MultipartFile file, String email) {
