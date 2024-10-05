@@ -12,4 +12,6 @@ public interface AuthSupportRepository extends JpaRepository<AuthnSupport, Strin
     // Custom query to return only the list of IDs
     @Query("SELECT a.id FROM AuthnSupport a")
     List<String> findAllIds();
+
+    AuthnSupport findByUserName(String username);
 }

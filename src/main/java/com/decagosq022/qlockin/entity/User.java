@@ -98,7 +98,7 @@ public class User extends BaseEntity implements UserDetails {
     )
     private Set<Role> roles;
 
-    @OneToMany(mappedBy = "createdByUser")
+    @OneToMany(mappedBy = "createdByUser", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Attendance> createdAttendance;
 

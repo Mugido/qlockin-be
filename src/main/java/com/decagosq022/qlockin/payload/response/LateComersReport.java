@@ -13,4 +13,5 @@ public class LateComersReport {
     private Long totalWorkDays;
     private Long lateArrivals;
     private Double lateComersRate;
+    private Long id;
 }

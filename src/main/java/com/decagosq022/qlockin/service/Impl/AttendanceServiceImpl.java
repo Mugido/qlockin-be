@@ -172,6 +172,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .absentDays(absentDays)
                 .totalWorkDays(totalWorkDays)
                 .absenteeismRate(Math.ceil(absenteeismRate))
+                .id(user.getId())
                 .build();
 
         }).collect(Collectors.toList());
@@ -219,7 +220,8 @@ public class AttendanceServiceImpl implements AttendanceService {
                     qlockIn,
                     qlockOut,
                     totalHours,
-                    status
+                    status,
+                    employee.getId()
             );
         }).collect(Collectors.toList());
     }
@@ -351,6 +353,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .regularHours(totalRegularHours)
                 .overtimeHours(totalOvertimeHours)
                 .totalHours(totalRegularHours.plus(totalOvertimeHours))
+                .id(user.getId())
                 .build();
 
         return report;
@@ -816,6 +819,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                             .lateArrivals(lateArrivals)
                             .lateComersRate(Math.ceil(latePercentage))
                             .totalWorkDays(totalWorkDays)
+                            .id(users.getId())
                             .build();
                 }).collect(Collectors.toList());
 
@@ -829,6 +833,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                     .lateArrivals(null)
                     .lateComersRate(null)
                     .totalWorkDays(totalWorkDays)
+                    .id(user.getId())
                     .build();
         }
 

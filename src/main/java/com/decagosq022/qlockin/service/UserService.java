@@ -37,7 +37,7 @@ public interface UserService {
 
     String activateUser(Long userId);
 
-    boolean deleteUserById(Long id);
+    boolean deleteUserById(String email, String id);
 
     List<AllEmployeeProfileResponse> getAllEmployeeProfiles(String email);
 

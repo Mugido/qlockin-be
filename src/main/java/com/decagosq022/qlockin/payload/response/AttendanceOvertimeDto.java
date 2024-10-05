@@ -19,5 +19,6 @@ import java.time.Duration;
 		private Duration regularHours;
 		private Duration overtimeHours;
 		private Duration totalHours;
+		private Long id;
 	}
 
