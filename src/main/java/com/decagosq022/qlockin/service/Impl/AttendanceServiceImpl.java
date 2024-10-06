@@ -129,7 +129,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                 .filter(a -> a.getQlockIn() == null)
                 .count();
 
-        Long activeEmployees = userRepository.countByIsActiveTrue();
+        Long activeEmployees = userRepository.count();
 
 
         return AttendanceDataDto.builder()
