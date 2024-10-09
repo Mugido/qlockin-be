@@ -18,7 +18,36 @@ Qlock-in aims to be the preferred choice for businesses looking to enhance their
 - Businesses of all sizes.
 - Staff aged 17-50, particularly in urban areas like Lagos and Abuja.
 
-## Features
+### Technology Stack
+
+**Backend Tools**:
+- **JPA (Hibernate)**: ORM framework for database interaction using Java objects.
+- **Lombok**: Java library for reducing boilerplate code with annotations.
+- **PostgreSQL**: Open-source, relational database for storing application data.
+- **JWT Authentication**: Secure token-based authentication mechanism.
+- **Spring Security**: Framework for securing Java-based applications.
+- **WebAuthn**: Passwordless authentication standard using public key credentials.
+
+**Frontend Tools**:
+- **ReactJS**: JavaScript library for building user interfaces.
+- **Tailwind CSS**: Utility-first CSS framework for responsive design.
+- **React Router DOM**: Declarative routing for React applications.
+- **CSS**: Styling language for enhancing UI presentation.
+- **Axios**: HTTP client for making API requests from React.
+- **Chart.js**: Simple and flexible charting library for data visualization.
+- **HTML2Canvas**: Library for capturing HTML elements as images.
+- **jsPDF**: JavaScript library for generating PDF documents.
+- **React-ChartJS-2**: React wrapper for integrating Chart.js components.
+
+**Deployment Tools**:
+- **Docker**: Containerization platform for application deployment.
+- **DockerHub**: Cloud-based registry for storing and sharing Docker images.
+- **CI/CD Pipelining**: Automation process for continuous integration and delivery.
+- **GitHub Actions**: Workflow automation for testing and deploying code.
+- **Render**: Cloud platform for hosting web applications and APIs.
+
+
+## Qlock-in Application Features
 
 ### For the Manager/Admin
 1. **Admin Login Portal**:
@@ -34,10 +63,13 @@ Qlock-in aims to be the preferred choice for businesses looking to enhance their
         - Absenteeism Rate
         - Overtime Hours
         - Latecomer rate
+        - A dynamic barchart that display the weekly clock-in of employees
 
 3. **Employee Database Management**:
     - Add and manage employee/user details (e.g., User ID, Name, Role).
     - Update Employee profile
+    - Promote an Employee to Admin by an already existing admin
+    - Ability to delete admin alongside there attendance list
 
 4. **Set Clock-in/Clock-out Time**:
     - Define times for clock-in/out and track late arrivals.
@@ -165,7 +197,27 @@ The Employee dashboard contains a few features similar to those in the Admin das
 - **View General Attendance**: Access a summary of attendance data for the team.
 - **View Personal History of Attendance**: Employees can review their attendance records and statistics at any time.
 
+### Steps for Setting Up the Project Locally
 
+Follow these instructions to set up and run the project on your local device:
+
+#### Backend Setup:
+1. Clone the backend repository via this link: `INSERT_REPO_LINK_HERE`
+2. Ensure all project dependencies are loaded by running the build (e.g., `mvn install` or relevant for your tool).
+3. In the `application.properties` file, configure the database connection details to match your local environment.
+4. Run the backend application (`mvn spring-boot:run` or the appropriate command for your setup).
+
+#### Frontend Setup:
+1. Clone the frontend repository via this link: `INSERT_REPO_LINK_HERE`
+2. Navigate into the project directory by running:
+   ```bash
+   cd frontend-folder
+3. Install the necessary dependencies using npm:
+   ```bash
+   npm install 
+4. Start the frontend application:
+   ```bash
+    npm run dev
 
 ## Conclusion
 Qlock-in provides a comprehensive solution for attendance tracking, ensuring ease of use for both administrators and employees. The features outlined above facilitate efficient management and enhance accountability within organizations.
